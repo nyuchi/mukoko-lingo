@@ -8,7 +8,8 @@ import { ThemeSwitcher } from "@/components/theme-switcher"
 import { SearchBar } from "@/components/search-bar"
 import { UserMenu } from "@/components/user-menu"
 import { AuthModal } from "@/components/auth-modal"
-import { Bookmark } from "lucide-react"
+import { NavigationMenu } from "@/components/navigation-menu"
+import { Bookmark, Users, Sparkles, MessageSquare } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import type { Phrase } from "@/lib/phrases-data"
@@ -226,28 +227,31 @@ export function ClientPage({ initialPhrases, initialBookmarks }: ClientPageProps
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted">
+    <div className="min-h-screen bg-background">
       <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} uiLanguage={uiLanguage} />
 
       <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
         <div className="container mx-auto px-3 sm:px-6 py-2 sm:py-3 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 sm:gap-3">
-            <Image
-              src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Nyuchi_Lingo_purple-NSHTsUuDVYaiijQqQGE4nwsgdvohEK.png"
-              alt="Nyuchi Lingo"
-              width={100}
-              height={33}
-              className="h-8 sm:h-10 w-auto dark:hidden"
-              priority
-            />
-            <Image
-              src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Nyuchi_Lingo_dark-FQBxd4oyoOqOeVfmPZaNiczf3SVPz5.png"
-              alt="Nyuchi Lingo"
-              width={100}
-              height={33}
-              className="h-8 sm:h-10 w-auto hidden dark:block"
-              priority
-            />
+            <NavigationMenu uiLanguage={uiLanguage} />
+            <Link href="/" aria-label="Nyuchi Lingo Home - Travel Language Learning">
+              <Image
+                src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Nyuchi_Lingo_purple-NSHTsUuDVYaiijQqQGE4nwsgdvohEK.png"
+                alt="Nyuchi Lingo - Travel Language Learning App for Zimbabwe"
+                width={100}
+                height={33}
+                className="h-8 sm:h-10 w-auto dark:hidden"
+                priority
+              />
+              <Image
+                src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Nyuchi_Lingo_dark-FQBxd4oyoOqOeVfmPZaNiczf3SVPz5.png"
+                alt="Nyuchi Lingo - Travel Language Learning App for Zimbabwe"
+                width={100}
+                height={33}
+                className="h-8 sm:h-10 w-auto hidden dark:block"
+                priority
+              />
+            </Link>
           </div>
           <div className="flex items-center gap-1 sm:gap-2">
             <LanguageSwitcher currentLanguage={uiLanguage} onLanguageChange={setUILanguage} />
@@ -256,37 +260,30 @@ export function ClientPage({ initialPhrases, initialBookmarks }: ClientPageProps
         </div>
       </header>
 
-      <section className="container mx-auto px-3 sm:px-6 py-4 sm:py-6 text-center">
-        <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif font-bold mb-2 sm:mb-3 text-balance bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
-          {t.heroTitle}
-        </h2>
-        <p className="text-base sm:text-lg text-muted-foreground max-w-3xl mx-auto text-pretty mb-4 sm:mb-6 px-2">
-          {t.heroSubtitle}
-        </p>
-        <div className="flex flex-wrap gap-2 sm:gap-3 justify-center px-2" role="list" aria-label="Supported languages">
-          <div
-            className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-primary/10 text-primary text-xs sm:text-sm font-medium border border-primary/20"
-            role="listitem"
-          >
-            English
-          </div>
-          <div
-            className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-secondary/10 text-secondary text-xs sm:text-sm font-medium border border-secondary/20"
-            role="listitem"
-          >
-            Shona
-          </div>
-          <div
-            className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-accent/10 text-accent text-xs sm:text-sm font-medium border border-accent/20"
-            role="listitem"
-          >
-            Ndebele
-          </div>
-          <div
-            className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-purple-500/10 text-purple-700 dark:text-purple-300 text-xs sm:text-sm font-medium border border-purple-500/20"
-            role="listitem"
-          >
-            {t.chinese}
+      <section className="bg-gradient-to-b from-primary/5 to-background py-6 sm:py-10">
+        <div className="container mx-auto px-3 sm:px-6 text-center">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-serif font-bold mb-2 sm:mb-3 text-balance">
+            {t.heroTitle || "Essential Travel Phrases for Zimbabwe & Southern Africa"}
+          </h1>
+          <p className="text-base sm:text-lg text-muted-foreground max-w-3xl mx-auto text-pretty mb-4 sm:mb-6 px-2">
+            {t.heroSubtitle ||
+              "Master local languages for your Zimbabwe adventure. Learn Shona, Ndebele & Chinese phrases for Victoria Falls, markets, restaurants, and more."}
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-2 text-xs sm:text-sm text-muted-foreground">
+            <span className="flex items-center gap-1">
+              <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              Perfect for Tourists
+            </span>
+            <span>•</span>
+            <span className="flex items-center gap-1">
+              <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              AI-Powered Learning
+            </span>
+            <span>•</span>
+            <span className="flex items-center gap-1">
+              <MessageSquare className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              200+ Travel Phrases
+            </span>
           </div>
         </div>
       </section>
@@ -311,7 +308,7 @@ export function ClientPage({ initialPhrases, initialBookmarks }: ClientPageProps
         </section>
       )}
 
-      <section
+      <main
         className="container mx-auto px-3 sm:px-6 py-4 sm:py-6"
         aria-label={`${t.categories[activeCategory as keyof typeof t.categories]} phrases`}
       >
@@ -341,7 +338,7 @@ export function ClientPage({ initialPhrases, initialBookmarks }: ClientPageProps
             ))}
           </div>
         )}
-      </section>
+      </main>
 
       <footer className="border-t mt-6 sm:mt-10 py-4 sm:py-6 bg-muted/30">
         <div className="container mx-auto px-3 sm:px-6">
