@@ -29,7 +29,7 @@ export function UserMenu() {
       setUser(user)
 
       if (user) {
-        const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single()
+        const { data: profile } = await supabase.from("profiles").select("role").eq("user_id", user.id).single()
 
         setUserRole(profile?.role || null)
       }
@@ -45,7 +45,7 @@ export function UserMenu() {
         supabase
           .from("profiles")
           .select("role")
-          .eq("id", session.user.id)
+          .eq("user_id", session.user.id)
           .single()
           .then(({ data }) => setUserRole(data?.role || null))
       } else {

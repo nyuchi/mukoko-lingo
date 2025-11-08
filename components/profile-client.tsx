@@ -16,7 +16,7 @@ import type { User } from "@supabase/supabase-js"
 import { Progress } from "@/components/ui/progress"
 
 interface Profile {
-  id: string
+  user_id: string
   email: string
   display_name: string | null
   preferred_ui_language: string
@@ -64,8 +64,8 @@ export function ProfileClient({ user, profile, analytics }: ProfileClientProps) 
 
       const { data: existingProfile, error: fetchError } = await supabase
         .from("profiles")
-        .select("id")
-        .eq("id", user.id)
+        .select("user_id")
+        .eq("user_id", user.id)
         .single()
 
       if (fetchError && fetchError.code !== "PGRST116") {
@@ -74,7 +74,7 @@ export function ProfileClient({ user, profile, analytics }: ProfileClientProps) 
 
       if (!existingProfile) {
         const { error: insertError } = await supabase.from("profiles").insert({
-          id: user.id,
+          user_id: user.id,
           email: user.email || "",
           display_name: displayName,
           preferred_ui_language: preferredLanguage,
@@ -97,7 +97,7 @@ export function ProfileClient({ user, profile, analytics }: ProfileClientProps) 
             daily_goal: Number.parseInt(dailyGoal) || 10,
             updated_at: new Date().toISOString(),
           })
-          .eq("id", user.id)
+          .eq("user_id", user.id)
 
         if (updateError) throw updateError
       }

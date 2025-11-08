@@ -199,11 +199,18 @@ export function ClientPage({ initialPhrases, initialBookmarks }: ClientPageProps
     updateStudySession()
 
     if (existingStatus) {
+      const { data: currentProgress } = await supabase
+        .from("phrase_progress")
+        .select("times_practiced")
+        .eq("user_id", user.id)
+        .eq("phrase_id", phraseId)
+        .single()
+
       const { error } = await supabase
         .from("phrase_progress")
         .update({
           status,
-          times_practiced: supabase.sql`times_practiced + 1`,
+          times_practiced: (currentProgress?.times_practiced || 0) + 1,
           last_practiced_at: new Date().toISOString(),
         })
         .eq("user_id", user.id)
