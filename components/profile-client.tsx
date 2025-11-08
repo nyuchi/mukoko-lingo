@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useState } from "react"
-import { createBrowserClient } from "@/lib/supabase/client"
+import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -60,7 +60,7 @@ export function ProfileClient({ user, profile, analytics }: ProfileClientProps) 
     setMessage(null)
 
     try {
-      const supabase = createBrowserClient()
+      const supabase = createClient()
 
       const { data: existingProfile, error: fetchError } = await supabase
         .from("profiles")

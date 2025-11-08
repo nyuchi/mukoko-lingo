@@ -5,42 +5,62 @@ export const siteConfig = {
   name: "Nyuchi Lingo",
   url: "https://nyuchilingo.com",
   description:
-    "Learn essential travel phrases in English, Shona, Ndebele & Chinese. Perfect for tourists visiting Zimbabwe and Southern Africa. Master local languages with AI-powered learning.",
+    "Learn essential phrases in English, Shona, Ndebele & Chinese. Perfect for tourists, expats, locals, business travelers, immigrants, and students. Master Zimbabwe's languages with AI-powered learning.",
   keywords: [
-    // Travel & Tourism focused
+    // Travel & Tourism
     "Zimbabwe travel phrases",
     "Southern Africa language guide",
     "tourist phrases Zimbabwe",
-    "travel to Zimbabwe",
     "Victoria Falls language",
-    "Zimbabwe tourism",
-    "African travel languages",
-    "tourist survival phrases",
-    "Zimbabwe vacation phrases",
-    "travel Africa language app",
-    // Language learning
-    "Shona language for tourists",
-    "Ndebele travel phrases",
-    "Chinese travel phrases",
-    "English to Shona",
-    "learn Shona online",
-    "learn Ndebele online",
+    // Business & Professional
+    "business Shona phrases",
+    "business Ndebele",
+    "professional language learning",
+    "Zimbabwe business language",
+    "corporate language training",
+    // Immigration & Relocation
+    "immigrating to Zimbabwe",
+    "moving to Zimbabwe language",
+    "Zimbabwe immigration language",
+    "relocating to Africa",
+    // Expats
+    "expat language learning",
+    "expat Zimbabwe",
+    "expatriate language guide",
+    "living in Zimbabwe language",
+    "expat Africa languages",
+    // Students & Education
+    "learn Shona for students",
+    "learn Ndebele for students",
+    "African language courses",
+    "university language learning",
+    "student language app",
+    // Locals & Personal Development
+    "learn Chinese in Zimbabwe",
+    "learn English Zimbabwe",
+    "multilingual Zimbabwe",
     "African language learning",
-    "multilingual travel app",
+    "personal language development",
+    // General Language Learning
+    "Shona language online",
+    "Ndebele language course",
+    "Chinese for Africans",
+    "English to Shona",
+    "multilingual learning app",
     "language comparison tool",
     "phrase translator",
     // Location specific
-    "Harare phrases",
+    "Harare language",
     "Bulawayo language",
-    "Zimbabwe local language",
+    "Zimbabwe local languages",
     "Southern African languages",
     "Bantu languages",
     // Features
     "AI language tutor",
-    "travel phrase book",
-    "offline phrase guide",
-    "language exchange",
+    "phrase book app",
     "pronunciation guide",
+    "language exchange",
+    "conversation practice",
   ],
   author: "Nyuchi Tech",
   locale: "en_US",
@@ -76,13 +96,15 @@ export const webApplicationSchema = {
   description: siteConfig.description,
   inLanguage: ["en", "sn", "nd", "zh"],
   featureList: [
-    "200+ travel phrases in 4 languages",
+    "200+ essential phrases in 4 languages",
     "AI-powered conversation practice",
     "Smart phrase recommendations",
-    "Offline access to phrases",
     "Progress tracking",
     "Cultural context explanations",
     "Pronunciation guides",
+    "Business communication phrases",
+    "Everyday conversation practice",
+    "Travel and tourism phrases",
   ],
 }
 
@@ -90,7 +112,7 @@ export const webApplicationSchema = {
 export function createMetadata(overrides?: Partial<Metadata>): Metadata {
   return {
     title: {
-      default: `${siteConfig.name} - Travel Phrases for Zimbabwe & Southern Africa`,
+      default: `${siteConfig.name} - Learn Shona, Ndebele & Chinese | For Everyone`,
       template: `%s | ${siteConfig.name}`,
     },
     description: siteConfig.description,
@@ -113,24 +135,24 @@ export function createMetadata(overrides?: Partial<Metadata>): Metadata {
       locale: siteConfig.locale,
       alternateLocale: siteConfig.alternateLocales,
       url: siteConfig.url,
-      title: `${siteConfig.name} - Essential Travel Phrases for Zimbabwe`,
+      title: `${siteConfig.name} - Master Zimbabwe's Languages`,
       description:
-        "Master essential travel phrases in Shona, Ndebele, English & Chinese. Perfect for tourists exploring Zimbabwe, Victoria Falls, and Southern Africa.",
+        "Learn Shona, Ndebele, English & Chinese with AI-powered tools. Perfect for tourists, expats, business travelers, immigrants, students, and locals building language skills.",
       siteName: siteConfig.name,
       images: [
         {
           url: "/favicon.png",
           width: 1200,
           height: 630,
-          alt: `${siteConfig.name} - Travel Language Learning`,
+          alt: `${siteConfig.name} - Multilingual Learning Platform`,
         },
       ],
     },
     twitter: {
       card: "summary_large_image",
-      title: `${siteConfig.name} - Travel Phrases for Zimbabwe`,
+      title: `${siteConfig.name} - Learn Zimbabwe's Languages`,
       description:
-        "Learn Shona, Ndebele & Chinese phrases for your Zimbabwe adventure. 200+ essential travel phrases with AI tutoring.",
+        "Master Shona, Ndebele & Chinese with AI tutoring. For tourists, expats, professionals, students, and anyone building language skills.",
       images: ["/favicon.png"],
     },
     robots: {

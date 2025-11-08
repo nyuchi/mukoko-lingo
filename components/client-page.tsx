@@ -270,16 +270,16 @@ export function ClientPage({ initialPhrases, initialBookmarks }: ClientPageProps
       <section className="bg-gradient-to-b from-primary/5 to-background py-6 sm:py-10">
         <div className="container mx-auto px-3 sm:px-6 text-center">
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-serif font-bold mb-2 sm:mb-3 text-balance">
-            {t.heroTitle || "Essential Travel Phrases for Zimbabwe & Southern Africa"}
+            {t.heroTitle || "Master Zimbabwe's Languages for Travel, Business & Life"}
           </h1>
           <p className="text-base sm:text-lg text-muted-foreground max-w-3xl mx-auto text-pretty mb-4 sm:mb-6 px-2">
             {t.heroSubtitle ||
-              "Master local languages for your Zimbabwe adventure. Learn Shona, Ndebele & Chinese phrases for Victoria Falls, markets, restaurants, and more."}
+              "Learn Shona, Ndebele, English & Chinese with AI-powered tools. Perfect for tourists exploring Victoria Falls, expats living in Zimbabwe, business professionals, students, immigrants, and locals building multilingual skills."}
           </p>
           <div className="flex flex-wrap items-center justify-center gap-2 text-xs sm:text-sm text-muted-foreground">
             <span className="flex items-center gap-1">
               <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-              Perfect for Tourists
+              For Everyone
             </span>
             <span>•</span>
             <span className="flex items-center gap-1">
@@ -289,7 +289,7 @@ export function ClientPage({ initialPhrases, initialBookmarks }: ClientPageProps
             <span>•</span>
             <span className="flex items-center gap-1">
               <MessageSquare className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-              200+ Travel Phrases
+              200+ Essential Phrases
             </span>
           </div>
         </div>

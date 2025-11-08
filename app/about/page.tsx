@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card"
 export const metadata = {
   title: "About Us - Nyuchi Lingo",
   description:
-    "Learn about Nyuchi Lingo's mission to bridge communication gaps across African and Asian languages through innovative language learning.",
+    "Learn about Nyuchi Lingo's mission to empower tourists, expats, locals, business professionals, immigrants, and students with essential language skills across Zimbabwe's languages.",
 }
 
 export default function AboutPage() {
@@ -33,7 +33,7 @@ export default function AboutPage() {
         <div className="text-center mb-8 sm:mb-12">
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-4 text-balance">About Nyuchi Lingo</h1>
           <p className="text-base sm:text-lg text-muted-foreground max-w-3xl mx-auto text-pretty px-2">
-            Breaking down language barriers across Africa and Asia, one phrase at a time.
+            Empowering everyone to communicate confidently across Zimbabwe's languages.
           </p>
         </div>
 
@@ -45,8 +45,9 @@ export default function AboutPage() {
               </div>
               <h3 className="text-xl font-semibold mb-2">Our Mission</h3>
               <p className="text-muted-foreground">
-                To empower Africans to communicate effectively across English, Shona, Ndebele, and Chinese by providing
-                accessible, practical language learning tools.
+                To empower everyone—tourists, business professionals, students, immigrants, and locals—to communicate
+                effectively across English, Shona, Ndebele, and Chinese through accessible, practical language learning
+                tools.
               </p>
             </CardContent>
           </Card>
@@ -58,8 +59,9 @@ export default function AboutPage() {
               </div>
               <h3 className="text-xl font-semibold mb-2">Who We Serve</h3>
               <p className="text-muted-foreground">
-                Students, professionals, travelers, and anyone interested in learning colloquial phrases to communicate
-                naturally across cultures.
+                Tourists exploring Zimbabwe, expats living abroad, business professionals conducting commerce, students
+                learning new languages, immigrants building new lives, and locals expanding their multilingual
+                abilities.
               </p>
             </CardContent>
           </Card>
@@ -69,20 +71,21 @@ export default function AboutPage() {
           <h2 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6">Our Story</h2>
           <div className="prose dark:prose-invert max-w-none text-sm sm:text-base">
             <p className="text-muted-foreground leading-relaxed mb-4">
-              Nyuchi Lingo was founded as part of the Nyuchi Learning initiative to address the growing need for
-              practical language education that bridges African and international languages. We recognized that while
-              formal language education exists, there was a gap in teaching the colloquial, everyday phrases that people
-              actually use in real conversations.
+              Nyuchi Lingo was founded to address the growing need for practical language education across Zimbabwe and
+              Southern Africa. Whether you're a tourist visiting Victoria Falls, an expat living and working in Africa,
+              a businessperson negotiating deals in Harare, a student pursuing education, an immigrant settling into a
+              new home, or a local wanting to expand your linguistic horizons—we're here to help you communicate
+              confidently.
             </p>
             <p className="text-muted-foreground leading-relaxed mb-4">
               Our platform focuses on English, Shona, Ndebele, and Chinese because of their strategic importance in
-              African business, education, and cultural exchange. By presenting these languages side-by-side, we make it
-              easy for learners to understand context, pronunciation, and appropriate usage.
+              tourism, business, education, and cultural exchange across Africa. By presenting these languages
+              side-by-side, we make it easy for all learners to understand context, pronunciation, and appropriate usage
+              in real-world situations.
             </p>
             <p className="text-muted-foreground leading-relaxed">
-              We believe that language learning should be accessible, practical, and culturally authentic. Every phrase
-              in our collection has been carefully selected to reflect real-world usage and help learners communicate
-              with confidence.
+              We believe language learning should be accessible to everyone, regardless of whether you're visiting for a
+              week, conducting business for a month, studying for a semester, or building a life here permanently.
             </p>
           </div>
         </section>
@@ -134,7 +137,8 @@ export default function AboutPage() {
         <section className="text-center bg-muted/50 rounded-lg p-6 sm:p-8">
           <h2 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4">Ready to Start Learning?</h2>
           <p className="text-sm sm:text-base text-muted-foreground mb-4 sm:mb-6 max-w-2xl mx-auto px-2">
-            Join thousands of learners who are breaking down language barriers and building bridges across cultures.
+            Join learners from around the world who are building language skills for travel, expat life, business,
+            education, and everyday life across Zimbabwe.
           </p>
           <div className="flex gap-3 sm:gap-4 justify-center flex-wrap">
             <Button asChild size="lg">

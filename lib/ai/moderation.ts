@@ -40,13 +40,14 @@ Return a JSON object indicating if the content is flagged and which categories a
           user_id: userId,
           content_type: contentType || "message",
           content_id: contentId,
-          content_text: content,
+          content_text: content.substring(0, 500),
           flagged_reason: object.reason || "Content flagged by AI moderation",
           categories: object.categories,
           status: "pending",
         })
       } catch (dbError) {
         console.error("[v0] Failed to log moderation alert:", dbError)
+        // Don't fail the moderation check if database insert fails
       }
     }
 

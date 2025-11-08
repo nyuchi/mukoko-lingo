@@ -30,6 +30,11 @@ export function AIPracticeClient() {
         language: practiceLanguage,
       },
     }),
+    onFinish: (message) => {
+      if (!conversationId && message.metadata?.conversationId) {
+        setConversationId(message.metadata.conversationId as string)
+      }
+    },
   })
 
   const t = translations[uiLanguage]

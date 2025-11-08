@@ -133,8 +133,6 @@
   --sidebar-ring: oklch(0.439 0 0);
 }
 
-/* Fixed missing closing brace in @theme inline block */
-/* Noto Serif for headings, Inter for body */
 @theme inline {
   --font-sans: "Inter", "Inter Fallback", system-ui, -apple-system, sans-serif;
   --font-serif: "Noto Serif", "Noto Serif Fallback", Georgia, serif;
@@ -176,6 +174,103 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+
+  --animate-zoom-in-95: zoom-in-95 200ms ease-out;
+  --animate-zoom-out-95: zoom-out-95 200ms ease-in;
+  --animate-zoom-in-90: zoom-in-90 200ms ease-out;
+  --animate-fade-in: fade-in-0 200ms ease-out;
+  --animate-fade-out: fade-out-0 200ms ease-in;
+  --animate-slide-in-from-top: slide-in-from-top-2 200ms ease-out;
+  --animate-slide-in-from-bottom: slide-in-from-bottom-2 200ms ease-out;
+  --animate-slide-in-from-left: slide-in-from-left-2 200ms ease-out;
+  --animate-slide-in-from-right: slide-in-from-right-2 200ms ease-out;
+}
+
+@keyframes zoom-in-95 {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes zoom-out-95 {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
+
+@keyframes zoom-in-90 {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes fade-in-0 {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fade-out-0 {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes slide-in-from-top-2 {
+  from {
+    transform: translateY(-0.5rem);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-in-from-bottom-2 {
+  from {
+    transform: translateY(0.5rem);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-in-from-left-2 {
+  from {
+    transform: translateX(-0.5rem);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes slide-in-from-right-2 {
+  from {
+    transform: translateX(0.5rem);
+  }
+  to {
+    transform: translateX(0);
+  }
 }
 
 @layer base {
@@ -183,7 +278,6 @@
     @apply border-border outline-ring/50;
   }
 
-  /* Ensure no unexpected margins or padding on root elements */
   html,
   body {
     margin: 0;
@@ -195,7 +289,6 @@
     @apply bg-background text-foreground font-sans;
   }
 
-  /* Apply Noto Serif to all headings */
   h1,
   h2,
   h3,
@@ -206,8 +299,54 @@
   }
 }
 
-/* Zimbabwe Flag Strip - Responsive & Reduced */
-/* Ensure flag strip doesn't affect document flow */
+@layer utilities {
+  .animate-in {
+    animation-duration: 200ms;
+    animation-fill-mode: both;
+  }
+
+  .animate-out {
+    animation-duration: 200ms;
+    animation-fill-mode: both;
+  }
+
+  .fade-in-0 {
+    animation-name: fade-in-0;
+  }
+
+  .fade-out-0 {
+    animation-name: fade-out-0;
+  }
+
+  .zoom-in-95 {
+    animation-name: zoom-in-95;
+  }
+
+  .zoom-out-95 {
+    animation-name: zoom-out-95;
+  }
+
+  .zoom-in-90 {
+    animation-name: zoom-in-90;
+  }
+
+  .slide-in-from-top-2 {
+    animation-name: slide-in-from-top-2;
+  }
+
+  .slide-in-from-bottom-2 {
+    animation-name: slide-in-from-bottom-2;
+  }
+
+  .slide-in-from-left-2 {
+    animation-name: slide-in-from-left-2;
+  }
+
+  .slide-in-from-right-2 {
+    animation-name: slide-in-from-right-2;
+  }
+}
+
 .flag-strip {
   position: fixed;
   left: 0;
@@ -245,7 +384,6 @@
   );
 }
 
-/* Hide flag completely on very small screens to maximize space */
 @media (max-width: 480px) {
   .flag-strip {
     display: none;

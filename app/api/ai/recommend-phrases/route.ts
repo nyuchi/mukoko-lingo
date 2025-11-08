@@ -25,7 +25,7 @@ export async function POST(req: Request) {
     }
 
     // Get user's progress data
-    const { data: progress } = await supabase.from("user_progress").select("phrase_id, status").eq("user_id", user.id)
+    const { data: progress } = await supabase.from("phrase_progress").select("phrase_id, status").eq("user_id", user.id)
 
     const masteredIds = progress?.filter((p) => p.status === "mastered").map((p) => p.phrase_id) || []
     const practicedIds = progress?.filter((p) => p.status === "practiced").map((p) => p.phrase_id) || []
@@ -45,14 +45,17 @@ export async function POST(req: Request) {
     // Get user's viewing history
     const { data: viewHistory } = await supabase
       .from("phrase_views")
-      .select("phrase_id, category")
+      .select("phrase_id, phrases(category)")
       .eq("user_id", user.id)
       .order("viewed_at", { ascending: false })
       .limit(20)
 
     const mostViewedCategories = viewHistory?.reduce(
       (acc, v) => {
-        acc[v.category] = (acc[v.category] || 0) + 1
+        const category = (v.phrases as any)?.category
+        if (category) {
+          acc[category] = (acc[category] || 0) + 1
+        }
         return acc
       },
       {} as Record<string, number>,

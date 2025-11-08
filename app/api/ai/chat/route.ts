@@ -128,6 +128,9 @@ export async function POST(req: Request) {
           await supabase.from("ai_conversations").update({ updated_at: new Date().toISOString() }).eq("id", convId)
         }
       },
+      metadata: {
+        conversationId: convId,
+      },
     })
   } catch (error) {
     console.error("[v0] AI chat error:", error)

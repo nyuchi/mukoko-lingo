@@ -82,6 +82,7 @@ export function AuthModal({ isOpen, onClose, uiLanguage }: AuthModalProps) {
       password: "Password",
       signInButton: "Sign in",
       signUpButton: "Create account",
+      forgotPassword: "Forgot password?",
       or: "or",
       alreadyHaveAccount: "Already have an account?",
       noAccount: "Don't have an account?",
@@ -95,6 +96,7 @@ export function AuthModal({ isOpen, onClose, uiLanguage }: AuthModalProps) {
       password: "Password",
       signInButton: "Pinda",
       signUpButton: "Gadzira account",
+      forgotPassword: "Wakanganwa password?",
       or: "kana",
       alreadyHaveAccount: "Une account?",
       noAccount: "Hauna account?",
@@ -108,6 +110,7 @@ export function AuthModal({ isOpen, onClose, uiLanguage }: AuthModalProps) {
       password: "Iphasiwedi",
       signInButton: "Ngena",
       signUpButton: "Yakha i-akhawunti",
+      forgotPassword: "Ukhohlwe iphasiwedi?",
       or: "noma",
       alreadyHaveAccount: "Usulenhlangano?",
       noAccount: "Awunayo i-akhawunti?",
@@ -121,6 +124,7 @@ export function AuthModal({ isOpen, onClose, uiLanguage }: AuthModalProps) {
       password: "密码",
       signInButton: "登录",
       signUpButton: "创建账户",
+      forgotPassword: "忘记密码？",
       or: "或",
       alreadyHaveAccount: "已有账户？",
       noAccount: "没有账户？",
@@ -165,6 +169,11 @@ export function AuthModal({ isOpen, onClose, uiLanguage }: AuthModalProps) {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                 />
+              </div>
+              <div className="text-right">
+                <a href="/auth/forgot-password" className="text-sm text-primary hover:underline" onClick={onClose}>
+                  {content.forgotPassword}
+                </a>
               </div>
               {error && <p className="text-sm text-destructive">{error}</p>}
               <Button type="submit" className="w-full" disabled={isLoading}>
