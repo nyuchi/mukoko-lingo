@@ -39,7 +39,7 @@ export function CategoryNav({ activeCategory, onCategoryChange, uiLanguage }: Ca
   ]
 
   return (
-    <div className="border-y bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-[73px] z-40">
+    <div className="border-y bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <ScrollArea className="w-full">
         <div className="container mx-auto px-4 py-4">
           <div className="flex gap-2">

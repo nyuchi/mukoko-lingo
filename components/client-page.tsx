@@ -1,0 +1,368 @@
+"use client"
+
+import { useState, useMemo, useEffect } from "react"
+import { CategoryNav } from "@/components/category-nav"
+import { PhraseComparison } from "@/components/phrase-comparison"
+import { LanguageSwitcher } from "@/components/language-switcher"
+import { ThemeSwitcher } from "@/components/theme-switcher"
+import { SearchBar } from "@/components/search-bar"
+import { UserMenu } from "@/components/user-menu"
+import { Bookmark } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import Link from "next/link"
+import type { Phrase } from "@/lib/phrases-data"
+import { translations, type UILanguage } from "@/lib/translations"
+import { createClient } from "@/lib/supabase/client"
+import Image from "next/image"
+
+interface ClientPageProps {
+  initialPhrases: Phrase[]
+  initialBookmarks: string[]
+}
+
+export function ClientPage({ initialPhrases, initialBookmarks }: ClientPageProps) {
+  const [activeCategory, setActiveCategory] = useState("greetings")
+  const [uiLanguage, setUILanguage] = useState<UILanguage>("en")
+  const [bookmarkedPhrases, setBookmarkedPhrases] = useState<string[]>(initialBookmarks)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [showBookmarksOnly, setShowBookmarksOnly] = useState(false)
+  const [user, setUser] = useState<{ id: string } | null>(null)
+  const [progressMap, setProgressMap] = useState<Record<string, "learning" | "practiced" | "mastered">>({})
+  const supabase = createClient()
+
+  const t = translations[uiLanguage]
+
+  useEffect(() => {
+    const getUser = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      setUser(user)
+      if (user) {
+        loadProgress()
+      }
+    }
+
+    getUser()
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null)
+      if (session?.user) {
+        loadBookmarks()
+        loadProgress()
+      } else {
+        setBookmarkedPhrases([])
+        setProgressMap({})
+      }
+    })
+
+    return () => subscription.unsubscribe()
+  }, [supabase.auth])
+
+  const loadBookmarks = async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) return
+
+    const { data } = await supabase.from("bookmarks").select("phrase_id").eq("user_id", user.id)
+
+    if (data) {
+      setBookmarkedPhrases(data.map((row) => row.phrase_id))
+    }
+  }
+
+  const loadProgress = async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) return
+
+    const { data } = await supabase.from("phrase_progress").select("phrase_id, status").eq("user_id", user.id)
+
+    if (data) {
+      const map: Record<string, "learning" | "practiced" | "mastered"> = {}
+      data.forEach((row) => {
+        map[row.phrase_id] = row.status as "learning" | "practiced" | "mastered"
+      })
+      setProgressMap(map)
+    }
+  }
+
+  const filteredPhrases = useMemo(() => {
+    let categoryPhrases = initialPhrases.filter((p) => p.category === activeCategory)
+
+    if (showBookmarksOnly) {
+      categoryPhrases = categoryPhrases.filter((p) => bookmarkedPhrases.includes(p.id))
+    }
+
+    if (!searchQuery.trim()) {
+      return categoryPhrases
+    }
+
+    const query = searchQuery.toLowerCase()
+    return categoryPhrases.filter((phrase) => {
+      return (
+        phrase.english.toLowerCase().includes(query) ||
+        phrase.shona.toLowerCase().includes(query) ||
+        phrase.ndebele.toLowerCase().includes(query) ||
+        phrase.chinese.toLowerCase().includes(query) ||
+        phrase.pronunciation.english.toLowerCase().includes(query) ||
+        phrase.pronunciation.shona.toLowerCase().includes(query) ||
+        phrase.pronunciation.ndebele.toLowerCase().includes(query) ||
+        phrase.pronunciation.chinese.toLowerCase().includes(query) ||
+        phrase.context.en.toLowerCase().includes(query) ||
+        phrase.context.sn.toLowerCase().includes(query) ||
+        phrase.context.nd.toLowerCase().includes(query) ||
+        phrase.context.zh.toLowerCase().includes(query)
+      )
+    })
+  }, [initialPhrases, activeCategory, searchQuery, showBookmarksOnly, bookmarkedPhrases])
+
+  const toggleBookmark = async (phraseId: string) => {
+    if (!user) {
+      alert("Please sign in to bookmark phrases")
+      return
+    }
+
+    const isBookmarked = bookmarkedPhrases.includes(phraseId)
+
+    if (isBookmarked) {
+      const { error } = await supabase.from("bookmarks").delete().eq("user_id", user.id).eq("phrase_id", phraseId)
+
+      if (!error) {
+        setBookmarkedPhrases((prev) => prev.filter((id) => id !== phraseId))
+      }
+    } else {
+      const { error } = await supabase.from("bookmarks").insert({
+        user_id: user.id,
+        phrase_id: phraseId,
+      })
+
+      if (!error) {
+        setBookmarkedPhrases((prev) => [...prev, phraseId])
+      }
+    }
+  }
+
+  const trackPhraseView = async (phraseId: string) => {
+    if (!user) return
+
+    await supabase.from("phrase_views").insert({
+      user_id: user.id,
+      phrase_id: phraseId,
+    })
+  }
+
+  const updateStudySession = async () => {
+    if (!user) return
+
+    const today = new Date().toISOString().split("T")[0]
+
+    const { data: existing } = await supabase
+      .from("study_sessions")
+      .select("*")
+      .eq("user_id", user.id)
+      .eq("session_date", today)
+      .single()
+
+    if (existing) {
+      await supabase
+        .from("study_sessions")
+        .update({
+          phrases_studied: existing.phrases_studied + 1,
+        })
+        .eq("id", existing.id)
+    } else {
+      await supabase.from("study_sessions").insert({
+        user_id: user.id,
+        session_date: today,
+        phrases_studied: 1,
+      })
+    }
+  }
+
+  const handleProgressUpdate = async (phraseId: string, status: "learning" | "practiced" | "mastered") => {
+    if (!user) return
+
+    const existingStatus = progressMap[phraseId]
+
+    trackPhraseView(phraseId)
+    updateStudySession()
+
+    if (existingStatus) {
+      const { error } = await supabase
+        .from("phrase_progress")
+        .update({
+          status,
+          times_practiced: supabase.sql`times_practiced + 1`,
+          last_practiced_at: new Date().toISOString(),
+        })
+        .eq("user_id", user.id)
+        .eq("phrase_id", phraseId)
+
+      if (!error) {
+        setProgressMap((prev) => ({ ...prev, [phraseId]: status }))
+      }
+    } else {
+      const { error } = await supabase.from("phrase_progress").insert({
+        user_id: user.id,
+        phrase_id: phraseId,
+        status,
+        times_practiced: 1,
+      })
+
+      if (!error) {
+        setProgressMap((prev) => ({ ...prev, [phraseId]: status }))
+      }
+    }
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted pl-0 sm:pl-4">
+      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
+        <div className="container mx-auto px-3 sm:px-6 py-3 sm:py-4 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Image
+              src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Nyuchi_Lingo_purple-NSHTsUuDVYaiijQqQGE4nwsgdvohEK.png"
+              alt="Nyuchi Lingo"
+              width={100}
+              height={33}
+              className="h-8 sm:h-10 w-auto dark:hidden"
+              priority
+            />
+            <Image
+              src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Nyuchi_Lingo_dark-FQBxd4oyoOqOeVfmPZaNiczf3SVPz5.png"
+              alt="Nyuchi Lingo"
+              width={100}
+              height={33}
+              className="h-8 sm:h-10 w-auto hidden dark:block"
+              priority
+            />
+          </div>
+          <div className="flex items-center gap-1 sm:gap-2">
+            <LanguageSwitcher currentLanguage={uiLanguage} onLanguageChange={setUILanguage} />
+            <UserMenu />
+          </div>
+        </div>
+      </header>
+
+      <section className="container mx-auto px-3 sm:px-6 py-6 sm:py-12 text-center">
+        <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif font-bold mb-3 sm:mb-4 text-balance bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
+          {t.heroTitle}
+        </h2>
+        <p className="text-base sm:text-lg text-muted-foreground max-w-3xl mx-auto text-pretty mb-6 sm:mb-8 px-2">
+          {t.heroSubtitle}
+        </p>
+        <div className="flex flex-wrap gap-2 sm:gap-3 justify-center px-2" role="list" aria-label="Supported languages">
+          <div
+            className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-primary/10 text-primary text-xs sm:text-sm font-medium border border-primary/20"
+            role="listitem"
+          >
+            English
+          </div>
+          <div
+            className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-secondary/10 text-secondary text-xs sm:text-sm font-medium border border-secondary/20"
+            role="listitem"
+          >
+            Shona
+          </div>
+          <div
+            className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-accent/10 text-accent text-xs sm:text-sm font-medium border border-accent/20"
+            role="listitem"
+          >
+            Ndebele
+          </div>
+          <div
+            className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-purple-500/10 text-purple-700 dark:text-purple-300 text-xs sm:text-sm font-medium border border-purple-500/20"
+            role="listitem"
+          >
+            {t.chinese}
+          </div>
+        </div>
+      </section>
+
+      <section className="container mx-auto px-3 sm:px-6 pb-4 sm:pb-8">
+        <SearchBar searchQuery={searchQuery} onSearchChange={setSearchQuery} uiLanguage={uiLanguage} />
+      </section>
+
+      <CategoryNav activeCategory={activeCategory} onCategoryChange={setActiveCategory} uiLanguage={uiLanguage} />
+
+      {user && bookmarkedPhrases.length > 0 && (
+        <section className="container mx-auto px-3 sm:px-6 py-3 sm:py-4">
+          <Button
+            variant={showBookmarksOnly ? "default" : "outline"}
+            size="sm"
+            onClick={() => setShowBookmarksOnly(!showBookmarksOnly)}
+          >
+            <Bookmark className="mr-2 h-4 w-4" />
+            {showBookmarksOnly ? t.showAll || "Show All" : t.showBookmarks || "Show Bookmarks"} (
+            {bookmarkedPhrases.length})
+          </Button>
+        </section>
+      )}
+
+      <section
+        className="container mx-auto px-3 sm:px-6 py-6 sm:py-12"
+        aria-label={`${t.categories[activeCategory as keyof typeof t.categories]} phrases`}
+      >
+        {filteredPhrases.length === 0 ? (
+          <div className="text-center py-8 sm:py-12 px-3">
+            <p className="text-base sm:text-lg text-muted-foreground">
+              {t.noResults || "No phrases found matching your search."}
+            </p>
+            <p className="text-sm text-muted-foreground mt-2">
+              {showBookmarksOnly
+                ? t.noBookmarks || "No bookmarked phrases in this category."
+                : t.tryDifferent || "Try a different search term or browse categories."}
+            </p>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-4 sm:gap-6">
+            {filteredPhrases.map((phrase) => (
+              <PhraseComparison
+                key={phrase.id}
+                phrase={phrase}
+                isBookmarked={bookmarkedPhrases.includes(phrase.id)}
+                onToggleBookmark={() => toggleBookmark(phrase.id)}
+                uiLanguage={uiLanguage}
+                progressStatus={user ? progressMap[phrase.id] || null : null}
+                onProgressUpdate={user ? (status) => handleProgressUpdate(phrase.id, status) : undefined}
+              />
+            ))}
+          </div>
+        )}
+      </section>
+
+      <footer className="border-t mt-12 sm:mt-20 py-6 sm:py-8 bg-muted/30">
+        <div className="container mx-auto px-3 sm:px-6">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4 sm:gap-6">
+            <div className="text-center md:text-left">
+              <p className="text-xs sm:text-sm text-muted-foreground">{t.footerText}</p>
+              <p className="mt-1 sm:mt-2 text-xs italic text-muted-foreground">"I am because we are" - Ubuntu</p>
+            </div>
+            <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
+              <nav className="flex flex-wrap justify-center gap-4 sm:gap-6 text-xs sm:text-sm">
+                <Link href="/about" className="text-muted-foreground hover:text-primary transition-colors">
+                  {t.footerAbout}
+                </Link>
+                <Link href="/why" className="text-muted-foreground hover:text-primary transition-colors">
+                  {t.footerWhy}
+                </Link>
+                <Link href="/terms" className="text-muted-foreground hover:text-primary transition-colors">
+                  {t.footerTerms}
+                </Link>
+                <Link href="/privacy" className="text-muted-foreground hover:text-primary transition-colors">
+                  {t.footerPrivacy}
+                </Link>
+              </nav>
+              <ThemeSwitcher />
+            </div>
+          </div>
+        </div>
+      </footer>
+    </div>
+  )
+}

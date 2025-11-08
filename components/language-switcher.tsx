@@ -23,7 +23,12 @@ export function LanguageSwitcher({ currentLanguage, onLanguageChange }: Language
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-2 bg-transparent">
+        <Button
+          variant="outline"
+          size="sm"
+          className="gap-2 bg-transparent"
+          aria-label={`Change language, current: ${currentLang?.nativeName}`}
+        >
           <Globe className="w-4 h-4" />
           <span className="hidden sm:inline">{currentLang?.nativeName}</span>
           <span className="sm:hidden">{currentLang?.code.toUpperCase()}</span>
@@ -35,6 +40,7 @@ export function LanguageSwitcher({ currentLanguage, onLanguageChange }: Language
             key={lang.code}
             onClick={() => onLanguageChange(lang.code)}
             className={currentLanguage === lang.code ? "bg-accent" : ""}
+            aria-current={currentLanguage === lang.code ? "true" : undefined}
           >
             <div className="flex flex-col">
               <span className="font-medium">{lang.nativeName}</span>

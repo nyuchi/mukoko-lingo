@@ -1,34 +1,64 @@
-@import 'tailwindcss';
-@import 'tw-animate-css';
+@import "tailwindcss";
+@import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
 
+/* Nyuchi Brand Colors v4.2 - Army Green, Warm Purple, Warm Brown */
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --radius: 0.625rem;
+  /* Light Theme - Nyuchi Brand Colors */
+  --green-primary-light: #729b63;
+  --green-hover-light: #84ac75;
+  --green-active-light: #628952;
+  --green-surface-light: #e8f2e4;
+  --green-subtle-light: #f4f9f2;
+
+  --purple-primary-light: #8b80e8;
+  --purple-hover-light: #a199ee;
+  --purple-active-light: #7569d9;
+  --purple-surface-light: #ebe8fc;
+  --purple-subtle-light: #f6f5fe;
+
+  --brown-primary-light: #a67557;
+  --brown-hover-light: #ba8668;
+  --brown-active-light: #925f47;
+  --brown-surface-light: #f5ede8;
+
+  --gray-900-light: #2b2b2b;
+  --gray-800-light: #4a4a4a;
+  --gray-700-light: #6b6b6b;
+  --gray-600-light: #8b8b8b;
+  --gray-500-light: #a8a8a8;
+  --gray-400-light: #c8c8c8;
+  --gray-300-light: #e0e0e0;
+  --gray-200-light: #f0f0f0;
+  --gray-100-light: #f8f8f8;
+
+  /* Base Theme Variables - Light */
+  --background: #ffffff;
+  --foreground: var(--gray-900-light);
+  --card: #ffffff;
+  --card-foreground: var(--gray-900-light);
+  --popover: #ffffff;
+  --popover-foreground: var(--gray-900-light);
+  --primary: var(--green-primary-light);
+  --primary-foreground: #ffffff;
+  --secondary: var(--purple-primary-light);
+  --secondary-foreground: #ffffff;
+  --muted: var(--gray-200-light);
+  --muted-foreground: var(--gray-700-light);
+  --accent: var(--brown-primary-light);
+  --accent-foreground: #ffffff;
+  --destructive: #d84e4e;
+  --destructive-foreground: #ffffff;
+  --border: var(--gray-300-light);
+  --input: var(--gray-300-light);
+  --ring: var(--green-primary-light);
+  --chart-1: var(--green-primary-light);
+  --chart-2: var(--purple-primary-light);
+  --chart-3: var(--brown-primary-light);
+  --chart-4: #5b9fe3;
+  --chart-5: #e8a040;
+  --radius: 0.75rem;
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
   --sidebar-primary: oklch(0.205 0 0);
@@ -39,31 +69,60 @@
   --sidebar-ring: oklch(0.708 0 0);
 }
 
+/* Dark Theme - Nyuchi Brand Colors */
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.145 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.145 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.985 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.396 0.141 25.723);
-  --destructive-foreground: oklch(0.637 0.237 25.331);
-  --border: oklch(0.269 0 0);
-  --input: oklch(0.269 0 0);
-  --ring: oklch(0.439 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
+  --green-primary-dark: #8fb47f;
+  --green-hover-dark: #a3c393;
+  --green-active-dark: #7ba56c;
+  --green-surface-dark: #2a3d26;
+  --green-subtle-dark: #1f2b1c;
+
+  --purple-primary-dark: #a89ef5;
+  --purple-hover-dark: #bdb5f9;
+  --purple-active-dark: #9489e6;
+  --purple-surface-dark: #2d2840;
+  --purple-subtle-dark: #1f1a2e;
+
+  --brown-primary-dark: #c99574;
+  --brown-hover-dark: #d9a788;
+  --brown-active-dark: #b58363;
+  --brown-surface-dark: #3d2d25;
+
+  --gray-900-dark: #e8e8e8;
+  --gray-800-dark: #c8c8c8;
+  --gray-700-dark: #a8a8a8;
+  --gray-600-dark: #8b8b8b;
+  --gray-500-dark: #6b6b6b;
+  --gray-400-dark: #4a4a4a;
+  --gray-300-dark: #2e2e2e;
+  --gray-200-dark: #1f1f1f;
+  --gray-100-dark: #151515;
+
+  /* Base Theme Variables - Dark */
+  --background: var(--gray-100-dark);
+  --foreground: var(--gray-900-dark);
+  --card: var(--gray-200-dark);
+  --card-foreground: var(--gray-900-dark);
+  --popover: var(--gray-200-dark);
+  --popover-foreground: var(--gray-900-dark);
+  --primary: var(--green-primary-dark);
+  --primary-foreground: var(--gray-100-dark);
+  --secondary: var(--purple-primary-dark);
+  --secondary-foreground: var(--gray-100-dark);
+  --muted: var(--gray-300-dark);
+  --muted-foreground: var(--gray-700-dark);
+  --accent: var(--brown-primary-dark);
+  --accent-foreground: var(--gray-100-dark);
+  --destructive: #e86b6b;
+  --destructive-foreground: #ffffff;
+  --border: var(--gray-300-dark);
+  --input: var(--gray-300-dark);
+  --ring: var(--green-primary-dark);
+  --chart-1: var(--green-primary-dark);
+  --chart-2: var(--purple-primary-dark);
+  --chart-3: var(--brown-primary-dark);
+  --chart-4: #7ab3f0;
+  --chart-5: #f4b55e;
   --sidebar: oklch(0.205 0 0);
   --sidebar-foreground: oklch(0.985 0 0);
   --sidebar-primary: oklch(0.488 0.243 264.376);
@@ -74,9 +133,12 @@
   --sidebar-ring: oklch(0.439 0 0);
 }
 
+/* Noto Serif for headings, Inter for body */
 @theme inline {
-  --font-sans: 'Geist', 'Geist Fallback';
-  --font-mono: 'Geist Mono', 'Geist Mono Fallback';
+  --font-sans: "Inter", "Inter Fallback", system-ui, -apple-system, sans-serif;
+  --font-serif: "Noto Serif", "Noto Serif Fallback", Georgia, serif;
+  --font-mono: "Geist Mono", "Geist Mono Fallback", monospace;
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -120,6 +182,58 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
+  }
+
+  /* Apply Noto Serif to all headings */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-serif;
+  }
+}
+
+/* Zimbabwe Flag Strip - Responsive & Reduced */
+.flag-strip {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  z-index: 9999;
+  background: linear-gradient(
+    to bottom,
+    #729b63 0%,
+    #729b63 25%,
+    #fdd116 25%,
+    #fdd116 50%,
+    #ef3340 50%,
+    #ef3340 75%,
+    #2b2b2b 75%,
+    #2b2b2b 100%
+  );
+}
+
+.dark .flag-strip {
+  background: linear-gradient(
+    to bottom,
+    #8fb47f 0%,
+    #8fb47f 25%,
+    #ffe042 25%,
+    #ffe042 50%,
+    #ff5c5c 50%,
+    #ff5c5c 75%,
+    #e8e8e8 75%,
+    #e8e8e8 100%
+  );
+}
+
+/* Hide flag completely on very small screens to maximize space */
+@media (max-width: 480px) {
+  .flag-strip {
+    display: none;
   }
 }
