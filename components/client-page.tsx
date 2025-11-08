@@ -7,6 +7,7 @@ import { LanguageSwitcher } from "@/components/language-switcher"
 import { ThemeSwitcher } from "@/components/theme-switcher"
 import { SearchBar } from "@/components/search-bar"
 import { UserMenu } from "@/components/user-menu"
+import { AuthModal } from "@/components/auth-modal"
 import { Bookmark } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
@@ -28,6 +29,7 @@ export function ClientPage({ initialPhrases, initialBookmarks }: ClientPageProps
   const [showBookmarksOnly, setShowBookmarksOnly] = useState(false)
   const [user, setUser] = useState<{ id: string } | null>(null)
   const [progressMap, setProgressMap] = useState<Record<string, "learning" | "practiced" | "mastered">>({})
+  const [showAuthModal, setShowAuthModal] = useState(false)
   const supabase = createClient()
 
   const t = translations[uiLanguage]
@@ -123,7 +125,7 @@ export function ClientPage({ initialPhrases, initialBookmarks }: ClientPageProps
 
   const toggleBookmark = async (phraseId: string) => {
     if (!user) {
-      alert("Please sign in to bookmark phrases")
+      setShowAuthModal(true)
       return
     }
 
@@ -185,7 +187,10 @@ export function ClientPage({ initialPhrases, initialBookmarks }: ClientPageProps
   }
 
   const handleProgressUpdate = async (phraseId: string, status: "learning" | "practiced" | "mastered") => {
-    if (!user) return
+    if (!user) {
+      setShowAuthModal(true)
+      return
+    }
 
     const existingStatus = progressMap[phraseId]
 
@@ -221,9 +226,11 @@ export function ClientPage({ initialPhrases, initialBookmarks }: ClientPageProps
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted pl-0 sm:pl-4">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted">
+      <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} uiLanguage={uiLanguage} />
+
       <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
-        <div className="container mx-auto px-3 sm:px-6 py-3 sm:py-4 flex items-center justify-between gap-2">
+        <div className="container mx-auto px-3 sm:px-6 py-2 sm:py-3 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 sm:gap-3">
             <Image
               src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Nyuchi_Lingo_purple-NSHTsUuDVYaiijQqQGE4nwsgdvohEK.png"
@@ -249,11 +256,11 @@ export function ClientPage({ initialPhrases, initialBookmarks }: ClientPageProps
         </div>
       </header>
 
-      <section className="container mx-auto px-3 sm:px-6 py-6 sm:py-12 text-center">
-        <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif font-bold mb-3 sm:mb-4 text-balance bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
+      <section className="container mx-auto px-3 sm:px-6 py-4 sm:py-6 text-center">
+        <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif font-bold mb-2 sm:mb-3 text-balance bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
           {t.heroTitle}
         </h2>
-        <p className="text-base sm:text-lg text-muted-foreground max-w-3xl mx-auto text-pretty mb-6 sm:mb-8 px-2">
+        <p className="text-base sm:text-lg text-muted-foreground max-w-3xl mx-auto text-pretty mb-4 sm:mb-6 px-2">
           {t.heroSubtitle}
         </p>
         <div className="flex flex-wrap gap-2 sm:gap-3 justify-center px-2" role="list" aria-label="Supported languages">
@@ -284,14 +291,14 @@ export function ClientPage({ initialPhrases, initialBookmarks }: ClientPageProps
         </div>
       </section>
 
-      <section className="container mx-auto px-3 sm:px-6 pb-4 sm:pb-8">
+      <section className="container mx-auto px-3 sm:px-6 pb-2 sm:pb-4">
         <SearchBar searchQuery={searchQuery} onSearchChange={setSearchQuery} uiLanguage={uiLanguage} />
       </section>
 
       <CategoryNav activeCategory={activeCategory} onCategoryChange={setActiveCategory} uiLanguage={uiLanguage} />
 
       {user && bookmarkedPhrases.length > 0 && (
-        <section className="container mx-auto px-3 sm:px-6 py-3 sm:py-4">
+        <section className="container mx-auto px-3 sm:px-6 py-2">
           <Button
             variant={showBookmarksOnly ? "default" : "outline"}
             size="sm"
@@ -305,22 +312,22 @@ export function ClientPage({ initialPhrases, initialBookmarks }: ClientPageProps
       )}
 
       <section
-        className="container mx-auto px-3 sm:px-6 py-6 sm:py-12"
+        className="container mx-auto px-3 sm:px-6 py-4 sm:py-6"
         aria-label={`${t.categories[activeCategory as keyof typeof t.categories]} phrases`}
       >
         {filteredPhrases.length === 0 ? (
-          <div className="text-center py-8 sm:py-12 px-3">
+          <div className="text-center py-6 sm:py-8 px-3">
             <p className="text-base sm:text-lg text-muted-foreground">
               {t.noResults || "No phrases found matching your search."}
             </p>
-            <p className="text-sm text-muted-foreground mt-2">
+            <p className="mt-1 sm:mt-2 text-sm text-muted-foreground">
               {showBookmarksOnly
                 ? t.noBookmarks || "No bookmarked phrases in this category."
                 : t.tryDifferent || "Try a different search term or browse categories."}
             </p>
           </div>
         ) : (
-          <div className="flex flex-col gap-4 sm:gap-6">
+          <div className="flex flex-col gap-3 sm:gap-4">
             {filteredPhrases.map((phrase) => (
               <PhraseComparison
                 key={phrase.id}
@@ -336,9 +343,9 @@ export function ClientPage({ initialPhrases, initialBookmarks }: ClientPageProps
         )}
       </section>
 
-      <footer className="border-t mt-12 sm:mt-20 py-6 sm:py-8 bg-muted/30">
+      <footer className="border-t mt-6 sm:mt-10 py-4 sm:py-6 bg-muted/30">
         <div className="container mx-auto px-3 sm:px-6">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4 sm:gap-6">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-3 sm:gap-4">
             <div className="text-center md:text-left">
               <p className="text-xs sm:text-sm text-muted-foreground">{t.footerText}</p>
               <p className="mt-1 sm:mt-2 text-xs italic text-muted-foreground">"I am because we are" - Ubuntu</p>
@@ -350,6 +357,9 @@ export function ClientPage({ initialPhrases, initialBookmarks }: ClientPageProps
                 </Link>
                 <Link href="/why" className="text-muted-foreground hover:text-primary transition-colors">
                   {t.footerWhy}
+                </Link>
+                <Link href="/ai-policy" className="text-muted-foreground hover:text-primary transition-colors">
+                  AI Policy
                 </Link>
                 <Link href="/terms" className="text-muted-foreground hover:text-primary transition-colors">
                   {t.footerTerms}

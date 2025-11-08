@@ -9,7 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { User, LogOut, LogIn, Settings, Bookmark, TrendingUp, BarChart3 } from "lucide-react"
+import { User, LogOut, LogIn, Settings, Bookmark, TrendingUp, BarChart3, MessageCircle } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
@@ -71,6 +71,12 @@ export function UserMenu() {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <a href="/ai-practice">
+            <MessageCircle className="mr-2 h-4 w-4" />
+            AI Practice
+          </a>
+        </DropdownMenuItem>
         <DropdownMenuItem asChild>
           <a href="/analytics">
             <BarChart3 className="mr-2 h-4 w-4" />

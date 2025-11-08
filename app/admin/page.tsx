@@ -47,7 +47,24 @@ export default async function AdminPage() {
     .order("viewed_at", { ascending: false })
     .limit(20)
 
+  const { data: moderationAlerts } = await supabase
+    .from("moderation_alerts")
+    .select(
+      `
+      *,
+      profiles!moderation_alerts_user_id_fkey(email, display_name)
+    `,
+    )
+    .order("created_at", { ascending: false })
+    .limit(50)
+
   return (
-    <AdminDashboard stats={stats} userActivity={userActivity} phrases={phrases || []} recentViews={recentViews || []} />
+    <AdminDashboard
+      stats={stats}
+      userActivity={userActivity}
+      phrases={phrases || []}
+      recentViews={recentViews || []}
+      moderationAlerts={moderationAlerts || []}
+    />
   )
 }

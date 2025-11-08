@@ -90,13 +90,13 @@ export function PhraseComparison({
 
   return (
     <Card
-      className="p-6 hover:shadow-lg transition-shadow"
+      className="p-4 hover:shadow-lg transition-shadow"
       role="article"
       aria-label={`Phrase comparison: ${phrase.english}`}
     >
-      <div className="flex items-start justify-between mb-4">
+      <div className="flex items-start justify-between mb-3">
         <div className="flex-1">
-          <Badge variant="secondary" className="mb-2">
+          <Badge variant="secondary" className="mb-1.5">
             {t.categories[phrase.category as keyof typeof t.categories]}
           </Badge>
           <p className="text-sm text-muted-foreground">{phrase.context[uiLanguage]}</p>
@@ -145,15 +145,15 @@ export function PhraseComparison({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
         {languageCards.map((card) => (
           <div
             key={card.lang}
-            className={`rounded-lg border-2 p-4 transition-colors ${colorClasses[card.color as keyof typeof colorClasses]}`}
+            className={`rounded-lg border-2 p-3 transition-colors ${colorClasses[card.color as keyof typeof colorClasses]}`}
             role="region"
             aria-label={`${card.lang} translation`}
           >
-            <div className="flex items-start justify-between mb-3">
+            <div className="flex items-start justify-between mb-2">
               <h3 className="font-semibold text-sm uppercase tracking-wide">
                 {card.lang === "english"
                   ? t.english
@@ -173,7 +173,7 @@ export function PhraseComparison({
                 <Volume2 className="w-4 h-4" />
               </Button>
             </div>
-            <p className="text-lg font-medium mb-2" lang={card.speechLang}>
+            <p className="text-lg font-medium mb-1.5" lang={card.speechLang}>
               {card.text}
             </p>
             <p className="text-xs text-muted-foreground italic">

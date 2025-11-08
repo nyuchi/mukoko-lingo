@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
 import { ClientPage } from "@/components/client-page"
+import { AIRecommendations } from "@/components/ai-recommendations"
 import type { Phrase } from "@/lib/phrases-data"
 
 async function getPhrases(): Promise<Phrase[]> {
@@ -56,5 +57,19 @@ async function getUserBookmarks(): Promise<string[]> {
 export default async function Page() {
   const [phrases, bookmarks] = await Promise.all([getPhrases(), getUserBookmarks()])
 
-  return <ClientPage initialPhrases={phrases} initialBookmarks={bookmarks} />
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  return (
+    <>
+      <ClientPage initialPhrases={phrases} initialBookmarks={bookmarks} />
+      {user && (
+        <div className="mx-auto max-w-5xl px-3 sm:px-6 lg:px-8 py-4 mb-8 pl-1">
+          <AIRecommendations />
+        </div>
+      )}
+    </>
+  )
 }
