@@ -61,22 +61,51 @@ export function ProfileClient({ user, profile, analytics }: ProfileClientProps) 
 
     try {
       const supabase = createBrowserClient()
-      const { error } = await supabase
+
+      const { data: existingProfile, error: fetchError } = await supabase
         .from("profiles")
-        .update({
+        .select("id")
+        .eq("id", user.id)
+        .single()
+
+      if (fetchError && fetchError.code !== "PGRST116") {
+        throw fetchError
+      }
+
+      if (!existingProfile) {
+        const { error: insertError } = await supabase.from("profiles").insert({
+          id: user.id,
+          email: user.email || "",
           display_name: displayName,
           preferred_ui_language: preferredLanguage,
           learning_goal: learningGoal || null,
           daily_goal: Number.parseInt(dailyGoal) || 10,
+          role: "user",
+          study_streak: 0,
+          created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         })
-        .eq("id", user.id)
 
-      if (error) throw error
+        if (insertError) throw insertError
+      } else {
+        const { error: updateError } = await supabase
+          .from("profiles")
+          .update({
+            display_name: displayName,
+            preferred_ui_language: preferredLanguage,
+            learning_goal: learningGoal || null,
+            daily_goal: Number.parseInt(dailyGoal) || 10,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", user.id)
+
+        if (updateError) throw updateError
+      }
 
       setMessage({ type: "success", text: "Profile updated successfully!" })
       router.refresh()
     } catch (error) {
+      console.error("[v0] Profile update error:", error)
       setMessage({
         type: "error",
         text: error instanceof Error ? error.message : "Failed to update profile",

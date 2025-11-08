@@ -9,7 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { User, LogOut, LogIn, Settings, Bookmark, TrendingUp, BarChart3, MessageCircle } from "lucide-react"
+import { User, LogOut, LogIn, Settings, Bookmark, TrendingUp, BarChart3, MessageCircle, Shield } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
@@ -17,6 +17,7 @@ import type { User as SupabaseUser } from "@supabase/supabase-js"
 
 export function UserMenu() {
   const [user, setUser] = useState<SupabaseUser | null>(null)
+  const [userRole, setUserRole] = useState<string | null>(null)
   const router = useRouter()
   const supabase = createClient()
 
@@ -26,6 +27,12 @@ export function UserMenu() {
         data: { user },
       } = await supabase.auth.getUser()
       setUser(user)
+
+      if (user) {
+        const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single()
+
+        setUserRole(profile?.role || null)
+      }
     }
 
     getUser()
@@ -34,10 +41,20 @@ export function UserMenu() {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null)
+      if (session?.user) {
+        supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", session.user.id)
+          .single()
+          .then(({ data }) => setUserRole(data?.role || null))
+      } else {
+        setUserRole(null)
+      }
     })
 
     return () => subscription.unsubscribe()
-  }, [supabase.auth])
+  }, [supabase])
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()
@@ -68,9 +85,21 @@ export function UserMenu() {
           <div className="flex flex-col">
             <span className="text-sm font-medium">{user.email}</span>
             <span className="text-xs text-muted-foreground">{user.user_metadata?.display_name || "Learner"}</span>
+            {userRole === "admin" && <span className="text-xs font-medium text-primary mt-1">Administrator</span>}
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+        {userRole === "admin" && (
+          <>
+            <DropdownMenuItem asChild>
+              <a href="/admin">
+                <Shield className="mr-2 h-4 w-4" />
+                Admin Dashboard
+              </a>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+          </>
+        )}
         <DropdownMenuItem asChild>
           <a href="/ai-practice">
             <MessageCircle className="mr-2 h-4 w-4" />
