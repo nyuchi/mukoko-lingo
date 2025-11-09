@@ -98,18 +98,18 @@ export function AppSidebar() {
   const adminSection: NavSection = {
     title: "Administration",
     items: [
-      { id: "admin-overview", label: "Overview", href: "/admin", icon: LayoutDashboard },
-      { id: "admin-users", label: "Users", href: "/admin#users", icon: Users },
-      { id: "admin-phrases", label: "Phrases", href: "/admin#phrases", icon: BookOpen },
-      { id: "admin-standards", label: "Standards", href: "/admin#standards", icon: GraduationCap },
+      { id: "admin-overview", label: "Overview", href: "/admin/overview", icon: LayoutDashboard },
+      { id: "admin-users", label: "Users", href: "/admin/users", icon: Users },
+      { id: "admin-phrases", label: "Phrases", href: "/admin/phrases", icon: BookOpen },
+      { id: "admin-standards", label: "Standards", href: "/admin/standards", icon: GraduationCap },
       {
         id: "admin-moderation",
         label: "Moderation",
-        href: "/admin#moderation",
+        href: "/admin/moderation",
         icon: Shield,
         badge: moderationCount,
       },
-      { id: "admin-activity", label: "Activity", href: "/admin#activity", icon: Activity },
+      { id: "admin-activity", label: "Activity", href: "/admin/activity", icon: Activity },
     ],
   }
 
