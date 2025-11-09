@@ -2,6 +2,7 @@ import type React from "react"
 import type { Metadata } from "next"
 import { Inter, Noto_Serif } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
+import Script from "next/script"
 import { ThemeProvider } from "@/components/theme-provider"
 import { createMetadata, organizationSchema, webApplicationSchema } from "@/lib/seo-config"
 import "./globals.css"
@@ -38,6 +39,23 @@ export default function RootLayout({
           {children}
         </ThemeProvider>
         <Analytics />
+
+        <Script
+          id="helpscout-beacon-loader"
+          strategy="lazyOnload"
+          dangerouslySetInnerHTML={{
+            __html: `
+              !function(e,t,n){function a(){var e=t.getElementsByTagName("script")[0],n=t.createElement("script");n.type="text/javascript",n.async=!0,n.src="https://beacon-v2.helpscout.net",e.parentNode.insertBefore(n,e)}if(e.Beacon=n=function(t,n,a){e.Beacon.readyQueue.push({method:t,options:n,data:a})},n.readyQueue=[],"complete"===t.readyState)return a();e.attachEvent?e.attachEvent("onload",a):e.addEventListener("load",a,!1)}(window,document,window.Beacon||function(){});
+            `,
+          }}
+        />
+        <Script
+          id="helpscout-beacon-init"
+          strategy="lazyOnload"
+          dangerouslySetInnerHTML={{
+            __html: `window.Beacon('init', '24b07133-7e39-4bfb-ac5c-71e8cd9fddb7')`,
+          }}
+        />
       </body>
     </html>
   )
