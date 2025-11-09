@@ -71,6 +71,7 @@ export const translations = {
     startChatting: "Start chatting with your AI tutor",
     chatHint: "Ask questions, practice phrases, or simulate real conversations",
     typeMessage: "Type your message...",
+    aiTutor: "AI Tutor",
     categories: {
       greetings: "Greetings",
       family: "Family",
@@ -168,6 +169,7 @@ export const translations = {
     startChatting: "Tanga kutaura nemudzidzisi wako we-AI",
     chatHint: "Bvunza mibvunzo, dzidzira mashoko, kana kufananidzira nhaurirano chaidzo",
     typeMessage: "Nyora meseji yako...",
+    aiTutor: "Mudzidzisi we AI",
     categories: {
       greetings: "Kwaziso",
       family: "Mhuri",
@@ -265,6 +267,7 @@ export const translations = {
     startChatting: "Qala ukukhuluma nomfundisi wakho we-AI",
     chatHint: "Buza imibuzo, qeqesha amazwi, noma lingisa izingxoxo zangempela",
     typeMessage: "Thayipha umlayezo wakho...",
+    aiTutor: "Umfundisi we-AI",
     categories: {
       greetings: "Izibingelelo",
       family: "Umndeni",
@@ -361,6 +364,7 @@ export const translations = {
     startChatting: "开始与您的AI导师聊天",
     chatHint: "提问、练习短语或模拟真实对话",
     typeMessage: "输入您的消息...",
+    aiTutor: "AI导师",
     categories: {
       greetings: "问候",
       family: "家庭",

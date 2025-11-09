@@ -1,4 +1,4 @@
-import { convertToModelMessages, streamText, type UIMessage } from "ai"
+import { streamText } from "ai"
 import { createServerClient } from "@/lib/supabase/server"
 import { moderateContent } from "@/lib/ai/moderation"
 
@@ -21,19 +21,16 @@ export async function POST(req: Request) {
       type,
       language,
     }: {
-      messages: UIMessage[]
+      messages: any[]
       conversationId?: string
       type: "practice" | "scenario" | "translation_help"
       language: string
     } = await req.json()
 
-    // Moderate user's last message
     const lastUserMessage = messages.filter((m) => m.role === "user").pop()
     if (lastUserMessage) {
-      const textContent = lastUserMessage.parts
-        .filter((p) => p.type === "text")
-        .map((p) => (p.type === "text" ? p.text : ""))
-        .join(" ")
+      const textContent =
+        typeof lastUserMessage.content === "string" ? lastUserMessage.content : lastUserMessage.content?.text || ""
 
       const moderation = await moderateContent(textContent)
 
@@ -63,14 +60,16 @@ export async function POST(req: Request) {
     // Create or update conversation
     let convId = conversationId
     if (!convId) {
+      const firstMessageContent = messages[0]?.content
+      const title = typeof firstMessageContent === "string" ? firstMessageContent.substring(0, 50) : "New conversation"
+
       const { data: newConv } = await supabase
         .from("ai_conversations")
         .insert({
           user_id: user.id,
           type,
           language,
-          title:
-            messages[0]?.parts[0]?.type === "text" ? messages[0].parts[0].text.substring(0, 50) : "New conversation",
+          title,
         })
         .select()
         .single()
@@ -95,20 +94,20 @@ export async function POST(req: Request) {
     const result = streamText({
       model: "openai/gpt-5",
       system: systemPrompt,
-      messages: convertToModelMessages(messages),
+      messages,
       maxOutputTokens: 1000,
       temperature: 0.8,
       abortSignal: req.signal,
     })
 
     return result.toUIMessageStreamResponse({
-      onFinish: async ({ text }) => {
+      async onFinish({ text }) {
         // Store messages in database
         if (convId) {
-          const userMsg = lastUserMessage?.parts
-            .filter((p) => p.type === "text")
-            .map((p) => (p.type === "text" ? p.text : ""))
-            .join(" ")
+          const userMsg =
+            typeof lastUserMessage?.content === "string"
+              ? lastUserMessage.content
+              : lastUserMessage?.content?.text || ""
 
           if (userMsg) {
             await supabase.from("ai_messages").insert({
@@ -128,8 +127,8 @@ export async function POST(req: Request) {
           await supabase.from("ai_conversations").update({ updated_at: new Date().toISOString() }).eq("id", convId)
         }
       },
-      metadata: {
-        conversationId: convId,
+      headers: {
+        "X-Conversation-Id": convId || "",
       },
     })
   } catch (error) {

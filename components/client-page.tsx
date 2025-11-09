@@ -3,19 +3,16 @@
 import { useState, useMemo, useEffect } from "react"
 import { CategoryNav } from "@/components/category-nav"
 import { PhraseComparison } from "@/components/phrase-comparison"
-import { LanguageSwitcher } from "@/components/language-switcher"
 import { ThemeSwitcher } from "@/components/theme-switcher"
 import { SearchBar } from "@/components/search-bar"
-import { UserMenu } from "@/components/user-menu"
 import { AuthModal } from "@/components/auth-modal"
-import { NavigationMenu } from "@/components/navigation-menu"
 import { Bookmark, Users, Sparkles, MessageSquare } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import type { Phrase } from "@/lib/phrases-data"
 import { translations, type UILanguage } from "@/lib/translations"
 import { createClient } from "@/lib/supabase/client"
-import Image from "next/image"
+import { AppHeader } from "@/components/app-header"
 
 interface ClientPageProps {
   initialPhrases: Phrase[]
@@ -153,37 +150,82 @@ export function ClientPage({ initialPhrases, initialBookmarks }: ClientPageProps
   const trackPhraseView = async (phraseId: string) => {
     if (!user) return
 
-    await supabase.from("phrase_views").insert({
-      user_id: user.id,
-      phrase_id: phraseId,
-    })
+    try {
+      const { error } = await supabase.from("phrase_views").insert({
+        user_id: user.id,
+        phrase_id: phraseId,
+      })
+
+      if (error) {
+        console.error("[v0] Error tracking phrase view:", error)
+      } else {
+        console.log("[v0] Phrase view tracked:", phraseId)
+      }
+    } catch (error) {
+      console.error("[v0] Exception tracking phrase view:", error)
+    }
   }
 
   const updateStudySession = async () => {
     if (!user) return
 
-    const today = new Date().toISOString().split("T")[0]
+    try {
+      const today = new Date().toISOString().split("T")[0]
 
-    const { data: existing } = await supabase
-      .from("study_sessions")
-      .select("*")
-      .eq("user_id", user.id)
-      .eq("session_date", today)
-      .single()
-
-    if (existing) {
-      await supabase
+      const { data: existing, error: fetchError } = await supabase
         .from("study_sessions")
-        .update({
-          phrases_studied: existing.phrases_studied + 1,
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("session_date", today)
+        .single()
+
+      if (fetchError && fetchError.code !== "PGRST116") {
+        console.error("[v0] Error fetching study session:", fetchError)
+        return
+      }
+
+      if (existing) {
+        const { error: updateError } = await supabase
+          .from("study_sessions")
+          .update({
+            phrases_studied: existing.phrases_studied + 1,
+          })
+          .eq("id", existing.id)
+
+        if (updateError) {
+          console.error("[v0] Error updating study session:", updateError)
+        } else {
+          console.log("[v0] Study session updated, phrases studied:", existing.phrases_studied + 1)
+        }
+      } else {
+        const { error: insertError } = await supabase.from("study_sessions").insert({
+          user_id: user.id,
+          session_date: today,
+          phrases_studied: 1,
+          time_spent_minutes: 1,
         })
-        .eq("id", existing.id)
-    } else {
-      await supabase.from("study_sessions").insert({
-        user_id: user.id,
-        session_date: today,
-        phrases_studied: 1,
-      })
+
+        if (insertError) {
+          console.error("[v0] Error inserting study session:", insertError)
+        } else {
+          console.log("[v0] New study session created for today")
+        }
+      }
+
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .update({
+          last_study_date: today,
+        })
+        .eq("user_id", user.id)
+
+      if (profileError) {
+        console.error("[v0] Error updating last study date:", profileError)
+      } else {
+        console.log("[v0] Last study date updated")
+      }
+    } catch (error) {
+      console.error("[v0] Exception updating study session:", error)
     }
   }
 
@@ -195,16 +237,21 @@ export function ClientPage({ initialPhrases, initialBookmarks }: ClientPageProps
 
     const existingStatus = progressMap[phraseId]
 
-    trackPhraseView(phraseId)
-    updateStudySession()
+    console.log("[v0] Updating progress for phrase:", phraseId, "to status:", status)
+    await trackPhraseView(phraseId)
+    await updateStudySession()
 
     if (existingStatus) {
-      const { data: currentProgress } = await supabase
+      const { data: currentProgress, error: fetchError } = await supabase
         .from("phrase_progress")
         .select("times_practiced")
         .eq("user_id", user.id)
         .eq("phrase_id", phraseId)
         .single()
+
+      if (fetchError) {
+        console.error("[v0] Error fetching current progress:", fetchError)
+      }
 
       const { error } = await supabase
         .from("phrase_progress")
@@ -218,6 +265,9 @@ export function ClientPage({ initialPhrases, initialBookmarks }: ClientPageProps
 
       if (!error) {
         setProgressMap((prev) => ({ ...prev, [phraseId]: status }))
+        console.log("[v0] Progress updated successfully")
+      } else {
+        console.error("[v0] Error updating progress:", error)
       }
     } else {
       const { error } = await supabase.from("phrase_progress").insert({
@@ -225,10 +275,14 @@ export function ClientPage({ initialPhrases, initialBookmarks }: ClientPageProps
         phrase_id: phraseId,
         status,
         times_practiced: 1,
+        last_practiced_at: new Date().toISOString(),
       })
 
       if (!error) {
         setProgressMap((prev) => ({ ...prev, [phraseId]: status }))
+        console.log("[v0] New progress record created")
+      } else {
+        console.error("[v0] Error inserting progress:", error)
       }
     }
   }
@@ -237,35 +291,7 @@ export function ClientPage({ initialPhrases, initialBookmarks }: ClientPageProps
     <div className="min-h-screen bg-background">
       <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} uiLanguage={uiLanguage} />
 
-      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
-        <div className="container mx-auto px-3 sm:px-6 py-2 sm:py-3 flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2 sm:gap-3">
-            <NavigationMenu uiLanguage={uiLanguage} />
-            <Link href="/" aria-label="Nyuchi Lingo Home - Travel Language Learning">
-              <Image
-                src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Nyuchi_Lingo_purple-NSHTsUuDVYaiijQqQGE4nwsgdvohEK.png"
-                alt="Nyuchi Lingo - Travel Language Learning App for Zimbabwe"
-                width={100}
-                height={33}
-                className="h-8 sm:h-10 w-auto dark:hidden"
-                priority
-              />
-              <Image
-                src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Nyuchi_Lingo_dark-FQBxd4oyoOqOeVfmPZaNiczf3SVPz5.png"
-                alt="Nyuchi Lingo - Travel Language Learning App for Zimbabwe"
-                width={100}
-                height={33}
-                className="h-8 sm:h-10 w-auto hidden dark:block"
-                priority
-              />
-            </Link>
-          </div>
-          <div className="flex items-center gap-1 sm:gap-2">
-            <LanguageSwitcher currentLanguage={uiLanguage} onLanguageChange={setUILanguage} />
-            <UserMenu />
-          </div>
-        </div>
-      </header>
+      <AppHeader uiLanguage={uiLanguage} onLanguageChange={setUILanguage} />
 
       <section className="bg-gradient-to-b from-primary/5 to-background py-6 sm:py-10">
         <div className="container mx-auto px-3 sm:px-6 text-center">
@@ -296,7 +322,19 @@ export function ClientPage({ initialPhrases, initialBookmarks }: ClientPageProps
       </section>
 
       <section className="container mx-auto px-3 sm:px-6 pb-2 sm:pb-4">
-        <SearchBar searchQuery={searchQuery} onSearchChange={setSearchQuery} uiLanguage={uiLanguage} />
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 items-stretch sm:items-center">
+          <div className="flex-1">
+            <SearchBar searchQuery={searchQuery} onSearchChange={setSearchQuery} uiLanguage={uiLanguage} />
+          </div>
+          {user && (
+            <Link href="/ai-practice">
+              <Button variant="default" size="default" className="w-full sm:w-auto whitespace-nowrap">
+                <MessageSquare className="mr-2 h-4 w-4" />
+                {t.aiTutor || "AI Tutor"}
+              </Button>
+            </Link>
+          )}
+        </div>
       </section>
 
       <CategoryNav activeCategory={activeCategory} onCategoryChange={setActiveCategory} uiLanguage={uiLanguage} />

@@ -43,6 +43,7 @@ export function AuthModal({ isOpen, onClose, uiLanguage }: AuthModalProps) {
       onClose()
       setEmail("")
       setPassword("")
+      window.location.reload()
     }
 
     setIsLoading(false)
@@ -67,6 +68,7 @@ export function AuthModal({ isOpen, onClose, uiLanguage }: AuthModalProps) {
       onClose()
       setEmail("")
       setPassword("")
+      window.location.reload()
     }
 
     setIsLoading(false)

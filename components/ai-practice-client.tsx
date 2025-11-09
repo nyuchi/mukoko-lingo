@@ -4,7 +4,6 @@ import type React from "react"
 
 import { useState } from "react"
 import { useChat } from "@ai-sdk/react"
-import { DefaultChatTransport } from "ai"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -13,6 +12,7 @@ import { MessageCircle, BookOpen, Globe, Send, Loader2 } from "lucide-react"
 import { translations, type UILanguage } from "@/lib/translations"
 import { ScenarioGenerator } from "./scenario-generator"
 import { TranslationHelper } from "./translation-helper"
+import { AppHeader } from "./app-header"
 
 export function AIPracticeClient() {
   const [uiLanguage, setUiLanguage] = useState<UILanguage>("en")
@@ -21,18 +21,21 @@ export function AIPracticeClient() {
   const [conversationId, setConversationId] = useState<string>()
   const [scenario, setScenario] = useState<any>(null)
 
-  const { messages, sendMessage, status, input, setInput } = useChat({
-    transport: new DefaultChatTransport({
-      api: "/api/ai/chat",
-      body: {
-        conversationId,
-        type: conversationType,
-        language: practiceLanguage,
-      },
-    }),
+  const { messages, append, isLoading, input, handleInputChange, handleSubmit } = useChat({
+    api: "/api/ai/chat",
+    body: {
+      conversationId,
+      type: conversationType,
+      language: practiceLanguage,
+    },
     onFinish: (message) => {
-      if (!conversationId && message.metadata?.conversationId) {
-        setConversationId(message.metadata.conversationId as string)
+      console.log("[v0] Chat finished, message:", message)
+    },
+    onResponse: (response) => {
+      const convId = response.headers.get("X-Conversation-Id")
+      if (convId && !conversationId) {
+        console.log("[v0] Setting conversation ID:", convId)
+        setConversationId(convId)
       }
     },
   })
@@ -41,9 +44,12 @@ export function AIPracticeClient() {
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault()
-    if (input.trim()) {
-      sendMessage({ text: input })
-      setInput("")
+    console.log("[v0] Send button clicked, input:", input)
+    if (input && input.trim()) {
+      console.log("[v0] Submitting message:", input)
+      handleSubmit(e)
+    } else {
+      console.log("[v0] Input is empty or undefined")
     }
   }
 
@@ -54,12 +60,13 @@ export function AIPracticeClient() {
 
   const handleStartScenario = (newScenario: any) => {
     setScenario(newScenario)
-    // Send the starter message automatically
-    sendMessage({ text: newScenario.starterMessage })
+    append({ role: "user", content: newScenario.starterMessage })
   }
 
   return (
     <div className="min-h-screen bg-background">
+      <AppHeader uiLanguage={uiLanguage} onLanguageChange={setUiLanguage} />
+
       <div className="mx-auto max-w-5xl px-3 sm:px-6 lg:px-8 py-4 sm:py-6">
         <div className="mb-4">
           <h1 className="font-serif text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-2">
@@ -139,22 +146,17 @@ export function AIPracticeClient() {
                         message.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted"
                       }`}
                     >
-                      {message.parts.map((part, index) => {
-                        if (part.type === "text") {
-                          return (
-                            <p key={index} className="text-sm whitespace-pre-wrap">
-                              {part.text}
-                            </p>
-                          )
-                        }
-                        return null
-                      })}
+                      {typeof message.content === "string" ? (
+                        <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                      ) : (
+                        message.content
+                      )}
                     </div>
                   </div>
                 ))
               )}
 
-              {status === "in_progress" && (
+              {isLoading && (
                 <div className="flex justify-start">
                   <div className="bg-muted rounded-lg px-4 py-2">
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -167,17 +169,13 @@ export function AIPracticeClient() {
               <div className="flex gap-2">
                 <Input
                   value={input}
-                  onChange={(e) => setInput(e.target.value)}
+                  onChange={handleInputChange}
                   placeholder={t.typeMessage || "Type your message..."}
-                  disabled={status === "in_progress"}
+                  disabled={isLoading}
                   className="flex-1"
                 />
-                <Button type="submit" disabled={!input.trim() || status === "in_progress"} size="icon">
-                  {status === "in_progress" ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Send className="h-4 w-4" />
-                  )}
+                <Button type="submit" disabled={!input || !input.trim() || isLoading} size="icon">
+                  {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                 </Button>
               </div>
             </form>

@@ -17,7 +17,7 @@ async function getUserProgress() {
     redirect("/auth/login")
   }
 
-  const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single()
+  const { data: profile } = await supabase.from("profiles").select("*").eq("user_id", user.id).single()
 
   const { data: progress } = await supabase
     .from("phrase_progress")

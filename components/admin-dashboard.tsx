@@ -35,6 +35,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import { LearningStandardsManager } from "@/components/learning-standards-manager"
 
 interface AdminStats {
   total_users: number
@@ -72,9 +73,17 @@ interface AdminDashboardProps {
   phrases: Phrase[]
   recentViews: any[]
   moderationAlerts: any[]
+  learningStandards: any[]
 }
 
-export function AdminDashboard({ stats, userActivity, phrases, recentViews, moderationAlerts }: AdminDashboardProps) {
+export function AdminDashboard({
+  stats,
+  userActivity,
+  phrases,
+  recentViews,
+  moderationAlerts,
+  learningStandards,
+}: AdminDashboardProps) {
   const router = useRouter()
   const [selectedUser, setSelectedUser] = useState<UserActivity | null>(null)
   const [isRoleDialogOpen, setIsRoleDialogOpen] = useState(false)
@@ -302,6 +311,7 @@ export function AdminDashboard({ stats, userActivity, phrases, recentViews, mode
           <TabsList>
             <TabsTrigger value="users">User Management</TabsTrigger>
             <TabsTrigger value="phrases">Phrase Management</TabsTrigger>
+            <TabsTrigger value="standards">Learning Standards</TabsTrigger>
             <TabsTrigger value="moderation">
               Moderation
               {moderationAlerts.filter((a) => a.status === "pending").length > 0 && (
@@ -657,6 +667,11 @@ export function AdminDashboard({ stats, userActivity, phrases, recentViews, mode
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Learning Standards Tab */}
+          <TabsContent value="standards" className="space-y-4">
+            <LearningStandardsManager standards={learningStandards} />
           </TabsContent>
 
           {/* Moderation Tab */}

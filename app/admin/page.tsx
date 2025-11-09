@@ -58,6 +58,11 @@ export default async function AdminPage() {
     .order("created_at", { ascending: false })
     .limit(50)
 
+  const { data: learningStandards } = await supabase
+    .from("learning_standards")
+    .select("*")
+    .order("level_order", { ascending: true })
+
   return (
     <AdminDashboard
       stats={stats}
@@ -65,6 +70,7 @@ export default async function AdminPage() {
       phrases={phrases || []}
       recentViews={recentViews || []}
       moderationAlerts={moderationAlerts || []}
+      learningStandards={learningStandards || []}
     />
   )
 }

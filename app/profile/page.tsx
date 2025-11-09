@@ -18,7 +18,7 @@ export default async function ProfilePage() {
     redirect("/auth/login")
   }
 
-  const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single()
+  const { data: profile } = await supabase.from("profiles").select("*").eq("user_id", user.id).single()
 
   // Fetch user analytics data
   const { data: progressStats } = await supabase.from("phrase_progress").select("status").eq("user_id", user.id)

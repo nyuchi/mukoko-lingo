@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
       activate: "active",
     }
 
-    const { error } = await supabase.from("profiles").update({ status: statusMap[action] }).eq("id", userId)
+    const { error } = await supabase.from("profiles").update({ status: statusMap[action] }).eq("user_id", userId)
 
     if (error) {
       return NextResponse.json({ error: "Failed to update user status" }, { status: 500 })

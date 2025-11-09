@@ -2,6 +2,7 @@ import Link from "next/link"
 import { Languages, Globe, Users, Heart } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { AppHeader } from "@/components/app-header"
 
 export const metadata = {
   title: "About Us - Nyuchi Lingo",
@@ -12,22 +13,7 @@ export const metadata = {
 export default function AboutPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted">
-      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
-        <div className="container mx-auto px-3 sm:px-6 py-3 sm:py-4 flex items-center justify-between gap-2">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center">
-              <Languages className="w-6 h-6 text-primary-foreground" />
-            </div>
-            <div>
-              <h1 className="text-xl sm:text-2xl font-bold text-foreground">Nyuchi Lingo</h1>
-              <p className="text-xs sm:text-sm text-muted-foreground">Nyuchi Learning</p>
-            </div>
-          </div>
-          <Button asChild variant="outline" size="sm">
-            <Link href="/">Back to Home</Link>
-          </Button>
-        </div>
-      </header>
+      <AppHeader showLanguageSwitcher={false} />
 
       <main className="container mx-auto px-3 sm:px-6 py-8 sm:py-12 max-w-5xl">
         <div className="text-center mb-8 sm:mb-12">

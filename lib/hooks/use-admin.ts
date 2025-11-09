@@ -23,7 +23,7 @@ export function useAdmin() {
         return
       }
 
-      const { data } = await supabase.from("profiles").select("role").eq("id", user.id).single()
+      const { data } = await supabase.from("profiles").select("role").eq("user_id", user.id).single()
 
       setIsAdmin(data?.role === "admin")
     } catch (error) {

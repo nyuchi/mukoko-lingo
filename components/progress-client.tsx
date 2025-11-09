@@ -2,13 +2,11 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { LanguageSwitcher } from "@/components/language-switcher"
-import { ThemeSwitcher } from "@/components/theme-switcher"
-import { UserMenu } from "@/components/user-menu"
-import { ArrowLeft, TrendingUp, Target, Award, Flame } from "lucide-react"
+import { TrendingUp, Target, Award, Flame } from "lucide-react"
 import Link from "next/link"
 import { useState } from "react"
 import { translations, type UILanguage } from "@/lib/translations"
+import { AppHeader } from "@/components/app-header"
 
 interface ProgressClientProps {
   profile: any
@@ -29,21 +27,7 @@ export function ProgressClient({ profile, stats }: ProgressClientProps) {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <Button variant="ghost" size="sm" asChild>
-            <Link href="/">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              {t.backToHome || "Back to Home"}
-            </Link>
-          </Button>
-          <div className="flex items-center gap-2">
-            <ThemeSwitcher />
-            <LanguageSwitcher currentLanguage={uiLanguage} onLanguageChange={setUILanguage} />
-            <UserMenu />
-          </div>
-        </div>
-      </header>
+      <AppHeader uiLanguage={uiLanguage} onLanguageChange={setUILanguage} />
 
       <main className="container mx-auto px-4 py-12 max-w-4xl">
         <div className="mb-8">

@@ -10,10 +10,10 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { useRouter } from "next/navigation"
-import { ArrowLeft, Save, TrendingUp, BookOpen, Eye, Bookmark, Target, Award, Activity } from "lucide-react"
-import Link from "next/link"
+import { Save, TrendingUp, BookOpen, Eye, Bookmark, Target, Award, Activity } from "lucide-react"
 import type { User } from "@supabase/supabase-js"
 import { Progress } from "@/components/ui/progress"
+import { AppHeader } from "@/components/app-header"
 
 interface Profile {
   user_id: string
@@ -25,6 +25,7 @@ interface Profile {
   study_streak: number
   last_study_date: string | null
   role: string
+  status: string
   created_at: string
   updated_at: string
 }
@@ -46,7 +47,7 @@ interface ProfileClientProps {
 }
 
 export function ProfileClient({ user, profile, analytics }: ProfileClientProps) {
-  const [displayName, setDisplayName] = useState(profile?.display_name || "")
+  const [displayName, setDisplayName] = useState(profile?.display_name || user.user_metadata?.full_name || "")
   const [preferredLanguage, setPreferredLanguage] = useState(profile?.preferred_ui_language || "en")
   const [learningGoal, setLearningGoal] = useState(profile?.learning_goal || "")
   const [dailyGoal, setDailyGoal] = useState(profile?.daily_goal?.toString() || "10")
@@ -62,17 +63,23 @@ export function ProfileClient({ user, profile, analytics }: ProfileClientProps) 
     try {
       const supabase = createClient()
 
+      console.log("[v0] Attempting to save profile for user:", user.id)
+
       const { data: existingProfile, error: fetchError } = await supabase
         .from("profiles")
         .select("user_id")
         .eq("user_id", user.id)
         .single()
 
+      console.log("[v0] Existing profile check:", { existingProfile, fetchError })
+
       if (fetchError && fetchError.code !== "PGRST116") {
+        console.error("[v0] Error fetching profile:", fetchError)
         throw fetchError
       }
 
       if (!existingProfile) {
+        console.log("[v0] Creating new profile")
         const { error: insertError } = await supabase.from("profiles").insert({
           user_id: user.id,
           email: user.email || "",
@@ -81,13 +88,19 @@ export function ProfileClient({ user, profile, analytics }: ProfileClientProps) 
           learning_goal: learningGoal || null,
           daily_goal: Number.parseInt(dailyGoal) || 10,
           role: "user",
+          status: "active",
           study_streak: 0,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         })
 
-        if (insertError) throw insertError
+        if (insertError) {
+          console.error("[v0] Error inserting profile:", insertError)
+          throw insertError
+        }
+        console.log("[v0] Profile created successfully")
       } else {
+        console.log("[v0] Updating existing profile")
         const { error: updateError } = await supabase
           .from("profiles")
           .update({
@@ -99,11 +112,17 @@ export function ProfileClient({ user, profile, analytics }: ProfileClientProps) 
           })
           .eq("user_id", user.id)
 
-        if (updateError) throw updateError
+        if (updateError) {
+          console.error("[v0] Error updating profile:", updateError)
+          throw updateError
+        }
+        console.log("[v0] Profile updated successfully")
       }
 
       setMessage({ type: "success", text: "Profile updated successfully!" })
-      router.refresh()
+      setTimeout(() => {
+        router.refresh()
+      }, 500)
     } catch (error) {
       console.error("[v0] Profile update error:", error)
       setMessage({
@@ -123,21 +142,7 @@ export function ProfileClient({ user, profile, analytics }: ProfileClientProps) 
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <Button variant="ghost" size="sm" asChild>
-            <Link href="/">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Home
-            </Link>
-          </Button>
-          {profile?.role === "admin" && (
-            <Button variant="outline" size="sm" asChild>
-              <Link href="/admin">Admin Dashboard</Link>
-            </Button>
-          )}
-        </div>
-      </header>
+      <AppHeader showLanguageSwitcher={false} />
 
       <main className="container mx-auto px-4 py-12 max-w-4xl">
         <div className="mb-8">

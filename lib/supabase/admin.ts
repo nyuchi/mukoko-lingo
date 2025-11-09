@@ -9,7 +9,7 @@ export async function isAdmin() {
   } = await supabase.auth.getUser()
   if (userError || !user) return false
 
-  const { data, error } = await supabase.from("profiles").select("role").eq("id", user.id).single()
+  const { data, error } = await supabase.from("profiles").select("role").eq("user_id", user.id).single()
 
   if (error) return false
   return data?.role === "admin"
@@ -47,7 +47,7 @@ export async function updateUserRole(userId: string, role: "user" | "admin") {
   await requireAdmin()
   const supabase = await createServerClient()
 
-  const { error } = await supabase.from("profiles").update({ role }).eq("id", userId)
+  const { error } = await supabase.from("profiles").update({ role }).eq("user_id", userId)
 
   if (error) throw error
 }
