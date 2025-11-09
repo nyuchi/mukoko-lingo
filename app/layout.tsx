@@ -5,6 +5,7 @@ import { Analytics } from "@vercel/analytics/next"
 import Script from "next/script"
 import { ThemeProvider } from "@/components/theme-provider"
 import { createMetadata, organizationSchema, webApplicationSchema } from "@/lib/seo-config"
+import { DevModeBanner } from "@/components/dev-mode-banner"
 import "./globals.css"
 
 const inter = Inter({
@@ -35,6 +36,7 @@ export default function RootLayout({
       </head>
       <body className={`${inter.variable} ${notoSerif.variable} font-sans antialiased`}>
         <div className="flag-strip" aria-hidden="true" />
+        <DevModeBanner />
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           {children}
         </ThemeProvider>

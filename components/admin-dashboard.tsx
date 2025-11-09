@@ -1,19 +1,17 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   Users,
   BookOpen,
   TrendingUp,
   Eye,
   Bookmark,
-  ArrowLeft,
   Plus,
   Edit,
   Trash2,
@@ -22,8 +20,9 @@ import {
   ArrowUpDown,
   ChevronDown,
   ChevronUp,
+  LayoutDashboard,
+  GraduationCap,
 } from "lucide-react"
-import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -85,6 +84,7 @@ export function AdminDashboard({
   learningStandards,
 }: AdminDashboardProps) {
   const router = useRouter()
+  const [activeSection, setActiveSection] = useState<string>("overview")
   const [selectedUser, setSelectedUser] = useState<UserActivity | null>(null)
   const [isRoleDialogOpen, setIsRoleDialogOpen] = useState(false)
   const [newRole, setNewRole] = useState<"user" | "admin">("user")
@@ -103,10 +103,41 @@ export function AdminDashboard({
   const [phraseSortDirection, setPhraseSortDirection] = useState<"asc" | "desc">("asc")
   const [categoryFilter, setCategoryFilter] = useState<string>("all")
 
+  useEffect(() => {
+    const hash = window.location.hash.replace("#", "")
+    if (hash) setActiveSection(hash)
+
+    const handleHashChange = () => {
+      const hash = window.location.hash.replace("#", "")
+      setActiveSection(hash || "overview")
+    }
+
+    window.addEventListener("hashchange", handleHashChange)
+    return () => window.removeEventListener("hashchange", handleHashChange)
+  }, [])
+
+  const sidebarItems = [
+    { id: "overview", label: "Overview", icon: LayoutDashboard },
+    {
+      id: "users",
+      label: "User Management",
+      icon: Users,
+    },
+    { id: "phrases", label: "Phrase Management", icon: BookOpen },
+    { id: "standards", label: "Learning Standards", icon: GraduationCap },
+    {
+      id: "moderation",
+      label: "Moderation",
+      icon: Shield,
+      badge: moderationAlerts.filter((a) => a.status === "pending").length,
+    },
+    { id: "activity", label: "Recent Activity", icon: Activity },
+  ]
+
   const filteredUsers = useMemo(() => {
     const filtered = userActivity.filter(
       (user) =>
-        user.email.toLowerCase().includes(userSearchTerm.toLowerCase()) ||
+        user.email?.toLowerCase().includes(userSearchTerm.toLowerCase()) ||
         user.display_name?.toLowerCase().includes(userSearchTerm.toLowerCase()),
     )
 
@@ -125,10 +156,10 @@ export function AdminDashboard({
   const filteredPhrases = useMemo(() => {
     const filtered = phrases.filter((phrase) => {
       const matchesSearch =
-        phrase.english.toLowerCase().includes(phraseSearchTerm.toLowerCase()) ||
-        phrase.shona.toLowerCase().includes(phraseSearchTerm.toLowerCase()) ||
-        phrase.ndebele.toLowerCase().includes(phraseSearchTerm.toLowerCase()) ||
-        phrase.chinese.toLowerCase().includes(phraseSearchTerm.toLowerCase())
+        phrase.english?.toLowerCase().includes(phraseSearchTerm.toLowerCase()) ||
+        phrase.shona?.toLowerCase().includes(phraseSearchTerm.toLowerCase()) ||
+        phrase.ndebele?.toLowerCase().includes(phraseSearchTerm.toLowerCase()) ||
+        phrase.chinese?.toLowerCase().includes(phraseSearchTerm.toLowerCase())
 
       const matchesCategory = categoryFilter === "all" || phrase.category === categoryFilter
 
@@ -221,110 +252,113 @@ export function AdminDashboard({
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b bg-accent/50">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="sm" asChild>
-              <Link href="/">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Home
-              </Link>
-            </Button>
-            <h1 className="font-serif text-2xl font-bold flex items-center gap-2">
-              <Shield className="h-6 w-6 text-primary" />
-              Admin Dashboard
-            </h1>
-          </div>
-          <Button variant="outline" size="sm" asChild>
-            <Link href="/profile">My Profile</Link>
-          </Button>
-        </div>
-      </header>
-
+    <div className="flex-1">
       <main className="container mx-auto px-4 py-8">
-        {/* Statistics Overview */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 mb-8">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.total_users}</div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Administrators</CardTitle>
-              <Shield className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.total_admins}</div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Phrases</CardTitle>
-              <BookOpen className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.total_phrases}</div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Views</CardTitle>
-              <Eye className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.total_views}</div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Bookmarks</CardTitle>
-              <Bookmark className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.total_bookmarks}</div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Progress Records</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.total_progress_records}</div>
-            </CardContent>
-          </Card>
+        {/* Mobile Navigation */}
+        <div className="lg:hidden mb-6">
+          <Select
+            value={activeSection}
+            onValueChange={(value) => {
+              setActiveSection(value)
+              window.location.hash = value
+            }}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {sidebarItems.map((item) => (
+                <SelectItem key={item.id} value={item.id}>
+                  <div className="flex items-center gap-2">
+                    <span>{item.label}</span>
+                    {item.badge && item.badge > 0 && (
+                      <Badge variant="destructive" className="ml-2">
+                        {item.badge}
+                      </Badge>
+                    )}
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
-        {/* Main Content Tabs */}
-        <Tabs defaultValue="users" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="users">User Management</TabsTrigger>
-            <TabsTrigger value="phrases">Phrase Management</TabsTrigger>
-            <TabsTrigger value="standards">Learning Standards</TabsTrigger>
-            <TabsTrigger value="moderation">
-              Moderation
-              {moderationAlerts.filter((a) => a.status === "pending").length > 0 && (
-                <Badge variant="destructive" className="ml-2">
-                  {moderationAlerts.filter((a) => a.status === "pending").length}
-                </Badge>
-              )}
-            </TabsTrigger>
-            <TabsTrigger value="activity">Recent Activity</TabsTrigger>
-          </TabsList>
+        {/* Overview Section */}
+        {activeSection === "overview" && (
+          <div className="space-y-8">
+            <div>
+              <h2 className="font-serif text-3xl font-bold mb-2">Dashboard Overview</h2>
+              <p className="text-muted-foreground">Quick insights and platform statistics</p>
+            </div>
 
-          {/* Users Tab */}
-          <TabsContent value="users" className="space-y-4">
+            {/* Statistics Overview */}
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+                  <Users className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{stats.total_users}</div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Administrators</CardTitle>
+                  <Shield className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{stats.total_admins}</div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Total Phrases</CardTitle>
+                  <BookOpen className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{stats.total_phrases}</div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Total Views</CardTitle>
+                  <Eye className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{stats.total_views}</div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Total Bookmarks</CardTitle>
+                  <Bookmark className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{stats.total_bookmarks}</div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Progress Records</CardTitle>
+                  <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{stats.total_progress_records}</div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        )}
+
+        {/* Users Section */}
+        {activeSection === "users" && (
+          <div className="space-y-4">
             <Card>
               <CardHeader>
                 <CardTitle className="font-serif">User Management</CardTitle>
@@ -473,10 +507,12 @@ export function AdminDashboard({
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
+          </div>
+        )}
 
-          {/* Phrases Tab */}
-          <TabsContent value="phrases" className="space-y-4">
+        {/* Phrases Section */}
+        {activeSection === "phrases" && (
+          <div className="space-y-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <div className="space-y-4 flex-1">
@@ -667,15 +703,19 @@ export function AdminDashboard({
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
+          </div>
+        )}
 
-          {/* Learning Standards Tab */}
-          <TabsContent value="standards" className="space-y-4">
+        {/* Learning Standards Section */}
+        {activeSection === "standards" && (
+          <div className="space-y-4">
             <LearningStandardsManager standards={learningStandards} />
-          </TabsContent>
+          </div>
+        )}
 
-          {/* Moderation Tab */}
-          <TabsContent value="moderation" className="space-y-4">
+        {/* Moderation Section */}
+        {activeSection === "moderation" && (
+          <div className="space-y-4">
             <Card>
               <CardHeader>
                 <CardTitle className="font-serif flex items-center gap-2">
@@ -773,7 +813,10 @@ export function AdminDashboard({
                                     variant="outline"
                                     className="border-amber-500 text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950 bg-transparent"
                                     onClick={() => {
-                                      setSelectedAlertUser({ id: alert.user_id, email: alert.profiles?.email || "" })
+                                      setSelectedAlertUser({
+                                        id: alert.user_id,
+                                        email: alert.profiles?.email || "",
+                                      })
                                       setUserAction("ban")
                                       setIsUserActionDialogOpen(true)
                                     }}
@@ -784,7 +827,10 @@ export function AdminDashboard({
                                     size="sm"
                                     variant="outline"
                                     onClick={() => {
-                                      setSelectedAlertUser({ id: alert.user_id, email: alert.profiles?.email || "" })
+                                      setSelectedAlertUser({
+                                        id: alert.user_id,
+                                        email: alert.profiles?.email || "",
+                                      })
                                       setUserAction("deactivate")
                                       setIsUserActionDialogOpen(true)
                                     }}
@@ -796,7 +842,10 @@ export function AdminDashboard({
                                     variant="outline"
                                     className="border-red-500 text-red-600 hover:bg-red-50 dark:hover:bg-red-950 bg-transparent"
                                     onClick={() => {
-                                      setSelectedAlertUser({ id: alert.user_id, email: alert.profiles?.email || "" })
+                                      setSelectedAlertUser({
+                                        id: alert.user_id,
+                                        email: alert.profiles?.email || "",
+                                      })
                                       setUserAction("delete")
                                       setIsUserActionDialogOpen(true)
                                     }}
@@ -814,10 +863,12 @@ export function AdminDashboard({
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
+          </div>
+        )}
 
-          {/* Activity Tab */}
-          <TabsContent value="activity" className="space-y-4">
+        {/* Activity Section */}
+        {activeSection === "activity" && (
+          <div className="space-y-4">
             <Card>
               <CardHeader>
                 <CardTitle className="font-serif flex items-center gap-2">
@@ -842,8 +893,8 @@ export function AdminDashboard({
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
-        </Tabs>
+          </div>
+        )}
       </main>
 
       {/* Role Update Dialog */}

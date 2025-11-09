@@ -1,6 +1,12 @@
 import { createServerClient } from "./server"
+import { isDevMode } from "@/lib/dev-mode"
 
-export async function isAdmin() {
+export async function checkIsAdmin() {
+  // In dev mode, always return true for admin access
+  if (isDevMode()) {
+    return true
+  }
+
   const supabase = await createServerClient()
 
   const {
@@ -15,8 +21,10 @@ export async function isAdmin() {
   return data?.role === "admin"
 }
 
+export const isAdmin = checkIsAdmin
+
 export async function requireAdmin() {
-  const admin = await isAdmin()
+  const admin = await checkIsAdmin()
   if (!admin) {
     throw new Error("Access denied. Admin privileges required.")
   }
