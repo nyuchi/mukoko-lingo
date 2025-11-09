@@ -20,6 +20,8 @@ import {
   LayoutDashboard,
   Menu,
   X,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -44,7 +46,8 @@ interface NavSection {
 
 export function AppSidebar() {
   const pathname = usePathname()
-  const [isOpen, setIsOpen] = useState(false)
+  const [isMobileOpen, setIsMobileOpen] = useState(false)
+  const [isCollapsed, setIsCollapsed] = useState(false)
   const [moderationCount, setModerationCount] = useState(0)
   const { user } = useDevAuth()
   const { isAdmin, loading } = useAdmin()
@@ -55,7 +58,6 @@ export function AppSidebar() {
   }, [user, isAdmin, loading])
 
   useEffect(() => {
-    // Fetch moderation alerts count for admins
     const fetchModerationCount = async () => {
       if (!isAdmin) return
 
@@ -70,7 +72,6 @@ export function AppSidebar() {
     fetchModerationCount()
   }, [isAdmin, supabase])
 
-  // User navigation sections
   const userSections: NavSection[] = [
     {
       title: "Main",
@@ -94,7 +95,6 @@ export function AppSidebar() {
     },
   ]
 
-  // Admin navigation section (only shown if user is admin)
   const adminSection: NavSection = {
     title: "Administration",
     items: [
@@ -113,7 +113,52 @@ export function AppSidebar() {
     ],
   }
 
-  const renderNavSection = (section: NavSection) => (
+  const renderDesktopNav = (section: NavSection) => (
+    <div key={section.title} className="mb-6">
+      {!isCollapsed && (
+        <h3 className="px-4 mb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+          {section.title}
+        </h3>
+      )}
+      <nav className="space-y-1">
+        {section.items.map((item) => {
+          const Icon = item.icon
+          const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href))
+
+          return (
+            <Link
+              key={item.id}
+              href={item.href}
+              className={cn(
+                "flex items-center gap-3 rounded-lg transition-colors relative",
+                isCollapsed ? "justify-center h-10 w-10 mx-auto" : "px-4 py-2.5 mx-2",
+                isActive
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:bg-accent hover:text-foreground",
+              )}
+              title={isCollapsed ? item.label : undefined}
+            >
+              <Icon className="h-5 w-5 flex-shrink-0" />
+              {!isCollapsed && <span className="flex-1 text-sm font-medium">{item.label}</span>}
+              {item.badge !== undefined && item.badge > 0 && (
+                <Badge
+                  variant="destructive"
+                  className={cn(
+                    isCollapsed ? "absolute -top-1 -right-1 h-5 w-5 p-0 text-xs" : "ml-auto",
+                    "flex items-center justify-center",
+                  )}
+                >
+                  {item.badge}
+                </Badge>
+              )}
+            </Link>
+          )
+        })}
+      </nav>
+    </div>
+  )
+
+  const renderMobileNav = (section: NavSection) => (
     <div key={section.title} className="mb-6">
       <h3 className="px-4 mb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
         {section.title}
@@ -127,7 +172,7 @@ export function AppSidebar() {
             <Link
               key={item.id}
               href={item.href}
-              onClick={() => setIsOpen(false)}
+              onClick={() => setIsMobileOpen(false)}
               className={cn(
                 "flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-lg transition-colors mx-2",
                 isActive
@@ -151,57 +196,103 @@ export function AppSidebar() {
 
   return (
     <>
-      {/* Mobile menu button */}
       <Button
         variant="ghost"
         size="icon"
         className="fixed top-4 left-4 z-50 lg:hidden"
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => setIsMobileOpen(!isMobileOpen)}
         aria-label="Toggle menu"
       >
-        {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+        {isMobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
       </Button>
 
-      {/* Overlay for mobile */}
-      {isOpen && (
+      {isMobileOpen && (
         <div
           className="fixed inset-0 bg-background/80 backdrop-blur-sm z-40 lg:hidden"
-          onClick={() => setIsOpen(false)}
+          onClick={() => setIsMobileOpen(false)}
         />
       )}
 
-      {/* Sidebar */}
       <aside
         className={cn(
-          "fixed top-0 left-0 z-40 h-screen w-64 bg-accent/30 border-r transition-transform duration-300 ease-in-out",
-          "lg:translate-x-0",
-          isOpen ? "translate-x-0" : "-translate-x-full",
+          "fixed top-0 left-0 z-40 h-screen bg-accent/30 border-r transition-all duration-300",
+          "hidden lg:flex lg:flex-col",
+          isCollapsed ? "w-16" : "w-64",
         )}
       >
         <div className="flex flex-col h-full">
-          {/* Sidebar Header */}
           <div className="flex items-center justify-between px-4 py-4 border-b bg-background/50">
-            <Link href="/" className="font-serif text-lg font-bold" onClick={() => setIsOpen(false)}>
+            {!isCollapsed && (
+              <Link href="/" className="font-serif text-lg font-bold">
+                Nyuchi Lingo
+              </Link>
+            )}
+            {isCollapsed && (
+              <Link href="/" className="font-serif text-xl font-bold text-primary mx-auto">
+                N
+              </Link>
+            )}
+          </div>
+
+          <div className="flex-1 overflow-y-auto py-4">
+            {userSections.map(renderDesktopNav)}
+
+            {isAdmin && (
+              <>
+                <div className={cn("my-4 border-t", isCollapsed ? "mx-2" : "mx-4")} />
+                {renderDesktopNav(adminSection)}
+              </>
+            )}
+          </div>
+
+          <div className="border-t bg-background/50">
+            <div className={cn("flex items-center", isCollapsed ? "justify-center p-2" : "justify-between p-4")}>
+              {!isCollapsed && <UserMenu />}
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setIsCollapsed(!isCollapsed)}
+                className={cn("h-8 w-8", isCollapsed && "mx-auto")}
+                aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+              >
+                {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+              </Button>
+            </div>
+            {isCollapsed && (
+              <div className="p-2 flex justify-center">
+                <UserMenu />
+              </div>
+            )}
+          </div>
+        </div>
+      </aside>
+
+      <aside
+        className={cn(
+          "fixed top-0 left-0 z-40 h-screen w-64 bg-accent/30 border-r transition-transform duration-300 ease-in-out",
+          "lg:hidden",
+          isMobileOpen ? "translate-x-0" : "-translate-x-full",
+        )}
+      >
+        <div className="flex flex-col h-full">
+          <div className="flex items-center justify-between px-4 py-4 border-b bg-background/50">
+            <Link href="/" className="font-serif text-lg font-bold" onClick={() => setIsMobileOpen(false)}>
               Nyuchi Lingo
             </Link>
             <UserMenu />
           </div>
 
-          {/* Scrollable nav content */}
           <div className="flex-1 overflow-y-auto py-4">
-            {/* User sections */}
-            {userSections.map(renderNavSection)}
+            {userSections.map(renderMobileNav)}
 
-            {/* Admin section - only shown if user is admin */}
             {isAdmin && (
               <>
                 <div className="mx-4 my-6 border-t" />
-                {renderNavSection(adminSection)}
+                {renderMobileNav(adminSection)}
               </>
             )}
           </div>
 
-          {/* Sidebar Footer */}
           <div className="border-t p-4 bg-background/50">
             <p className="text-xs text-muted-foreground text-center">Nyuchi Lingo © 2025</p>
           </div>

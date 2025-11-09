@@ -21,7 +21,7 @@ export default async function AdminOverviewPage() {
   return (
     <div className="flex min-h-screen">
       <AppSidebar />
-      <main className="flex-1 lg:ml-64">
+      <main className="flex-1 lg:ml-64 transition-all duration-300">
         <div className="container mx-auto px-4 py-8">
           <div className="mb-8">
             <h1 className="font-serif text-3xl font-bold mb-2">Dashboard Overview</h1>

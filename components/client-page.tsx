@@ -264,7 +264,11 @@ export function ClientPage({ initialPhrases, initialBookmarks }: ClientPageProps
     <div className="min-h-screen bg-background">
       {user && user.id !== "00000000-0000-0000-0000-000000000000" && <AppSidebar />}
 
-      <div className={user && user.id !== "00000000-0000-0000-0000-000000000000" ? "lg:ml-64" : ""}>
+      <div
+        className={
+          user && user.id !== "00000000-0000-0000-0000-000000000000" ? "lg:ml-64 transition-all duration-300" : ""
+        }
+      >
         <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} uiLanguage={uiLanguage} />
 
         <AppHeader uiLanguage={uiLanguage} onLanguageChange={setUILanguage} />
