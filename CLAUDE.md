@@ -393,30 +393,86 @@ Mock admin user (dev@nyuchi.com) has full access to all features.
 
 ---
 
-## Related Documentation
+## Documentation Structure
 
-### Core Documentation
+### Documentation Organization
+
+All project documentation follows a clean, organized structure:
+
+**Root Directory** (Essential documents only):
+- **CLAUDE.md** - Developer guide (this file)
+- **README.md** - Project overview and quick start
+- **DEPLOYMENT.md** - Deployment instructions
+- **SECURITY.md** - Security architecture
+- **CHANGELOG.md** - Version history
+- **RELEASES.md** - Release management
+- **BRANDING.md** - Brand guidelines
+- **DEV_MODE.md** - Development mode guide
+
+**`/summaries/`** - Work completion summaries and migration documentation:
+- Feature implementation summaries
+- Migration completion reports
+- Fix and improvement documentation
+- Historical work records
+
+**`/docs/`** - Technical documentation and guides:
+- Design system documentation
+- API documentation
+- Architecture guides
+- Developer references
+
+**`/scripts/`** - Database migrations and utilities:
+- All SQL migration files (numbered 001-027+)
+- Migration application scripts
+- Database utilities
+
+**`/brand/`** - Brand assets and guidelines:
+- Official brand guideline PDFs
+- Logo files and variations
+- Color palettes and typography
+- Brand voice guidelines
+
+### Creating New Documentation
+
+**IMPORTANT**: When creating new completion summaries, migration docs, or work records:
+
+1. **Always place in `/summaries/`** directory
+2. Use descriptive filenames with uppercase and underscores (e.g., `FEATURE_IMPLEMENTATION_COMPLETE.md`)
+3. Reference the summary in CLAUDE.md only if it introduces new patterns or workflows
+4. Keep root directory clean - only essential, frequently-referenced documents belong there
+
+**Example Workflow**:
+```bash
+# Good: Summary goes in summaries/
+echo "Implementation complete" > summaries/NEW_FEATURE_COMPLETE.md
+git add summaries/NEW_FEATURE_COMPLETE.md
+
+# Bad: Don't clutter root
+echo "Implementation complete" > NEW_FEATURE_COMPLETE.md  # ❌ Wrong location
+```
+
+### Related Documentation
+
+### Core Documentation (Root)
 - **[DEPLOYMENT.md](DEPLOYMENT.md)** - Complete deployment guide for Vercel and Supabase
 - **[SECURITY.md](SECURITY.md)** - Security architecture, RLS policies, authentication
 - **[CHANGELOG.md](CHANGELOG.md)** - Complete version history and release notes
 - **[RELEASES.md](RELEASES.md)** - Release management and versioning guidelines
 - **[DEV_MODE.md](DEV_MODE.md)** - Development mode setup and security warnings
-
-### Feature Documentation
 - **[BRANDING.md](BRANDING.md)** - Brand guidelines, colors, typography, UI patterns
-- **[DESIGN_SYSTEM.md](DESIGN_SYSTEM.md)** - Component library and design patterns
 
-### Migration Documentation
-- **[SIDEBAR_LAYOUT_MIGRATION_COMPLETE.md](SIDEBAR_LAYOUT_MIGRATION_COMPLETE.md)** - v2.0 layout system implementation
-- **[UNIFIED_LAYOUT_COMPLETE.md](UNIFIED_LAYOUT_COMPLETE.md)** - Unified layout across all pages
-- **[APP_HEADER_TO_SIDEBAR_MIGRATION.md](APP_HEADER_TO_SIDEBAR_MIGRATION.md)** - Migration from AppHeader to AppSidebar
-- **[THEME_AND_LANGUAGE_CONTROLS_ADDED.md](THEME_AND_LANGUAGE_CONTROLS_ADDED.md)** - Theme and language switcher integration
-- **[CENTERED_LAYOUT_APPLIED.md](CENTERED_LAYOUT_APPLIED.md)** - Centered layout implementation
+### Technical Documentation (/docs)
+- **[docs/DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md)** - Component library and design patterns
 
-### Technical Fixes
-- **[FIXES_SUMMARY.md](FIXES_SUMMARY.md)** - Summary of major fixes and improvements
-- **[NAVIGATION_FIX_SUMMARY.md](NAVIGATION_FIX_SUMMARY.md)** - Navigation system improvements
-- **[MOBILE_USABILITY_FIXES.md](MOBILE_USABILITY_FIXES.md)** - Mobile responsiveness fixes
+### Work Summaries (/summaries)
+- **[summaries/SIDEBAR_LAYOUT_MIGRATION_COMPLETE.md](summaries/SIDEBAR_LAYOUT_MIGRATION_COMPLETE.md)** - v2.0 layout system implementation
+- **[summaries/APP_HEADER_TO_SIDEBAR_MIGRATION.md](summaries/APP_HEADER_TO_SIDEBAR_MIGRATION.md)** - Migration from AppHeader to AppSidebar
+- **[summaries/CENTERED_LAYOUT_APPLIED.md](summaries/CENTERED_LAYOUT_APPLIED.md)** - Centered layout implementation
+- **[summaries/BRAND_IMPLEMENTATION_COMPLETE.md](summaries/BRAND_IMPLEMENTATION_COMPLETE.md)** - Brand color implementation
+- **[summaries/HYDRATION_AND_RESPONSIVE_FIXES.md](summaries/HYDRATION_AND_RESPONSIVE_FIXES.md)** - Hydration error fixes
+- **[summaries/FIXES_SUMMARY.md](summaries/FIXES_SUMMARY.md)** - Summary of major fixes and improvements
+- **[summaries/NAVIGATION_FIX_SUMMARY.md](summaries/NAVIGATION_FIX_SUMMARY.md)** - Navigation system improvements
+- **[summaries/MOBILE_USABILITY_FIXES.md](summaries/MOBILE_USABILITY_FIXES.md)** - Mobile responsiveness fixes
 
 ---
 
