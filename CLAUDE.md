@@ -466,7 +466,9 @@ echo "Implementation complete" > NEW_FEATURE_COMPLETE.md  # ❌ Wrong location
 
 ### Work Summaries (/summaries)
 - **[summaries/SIDEBAR_LAYOUT_MIGRATION_COMPLETE.md](summaries/SIDEBAR_LAYOUT_MIGRATION_COMPLETE.md)** - v2.0 layout system implementation
+- **[summaries/UNIFIED_LAYOUT_COMPLETE.md](summaries/UNIFIED_LAYOUT_COMPLETE.md)** - Unified layout across all pages
 - **[summaries/APP_HEADER_TO_SIDEBAR_MIGRATION.md](summaries/APP_HEADER_TO_SIDEBAR_MIGRATION.md)** - Migration from AppHeader to AppSidebar
+- **[summaries/THEME_AND_LANGUAGE_CONTROLS_ADDED.md](summaries/THEME_AND_LANGUAGE_CONTROLS_ADDED.md)** - Theme and language switcher integration
 - **[summaries/CENTERED_LAYOUT_APPLIED.md](summaries/CENTERED_LAYOUT_APPLIED.md)** - Centered layout implementation
 - **[summaries/BRAND_IMPLEMENTATION_COMPLETE.md](summaries/BRAND_IMPLEMENTATION_COMPLETE.md)** - Brand color implementation
 - **[summaries/HYDRATION_AND_RESPONSIVE_FIXES.md](summaries/HYDRATION_AND_RESPONSIVE_FIXES.md)** - Hydration error fixes
