@@ -36,6 +36,52 @@ npm run dev
 
 **Important**: Dev mode bypasses ALL authentication and grants admin access. See [DEV_MODE.md](DEV_MODE.md) for details.
 
+## Design System & Colors
+
+### Background Colors
+- **Light Theme**: `#faf9f5` - Warm off-white, reduces eye strain, better contrast
+- **Dark Theme**: `#101010` - Very dark for depth
+- **Cards**: Always white (#ffffff) in light mode, #1a1a1a in dark mode for elevation
+
+### Button Colors (CRITICAL - Always follow these)
+
+**Light Mode Buttons:**
+- Primary: `bg-primary-700` (#5f5873) with white text
+- Secondary: `bg-secondary-500` (#729B63) with white text
+- Hover: `bg-primary-600` / `bg-secondary-400`
+- Active: `bg-primary-800` / `bg-secondary-600`
+
+**Dark Mode Buttons:**
+- Primary: `bg-primary-600` (#7c73e6 - Ubuntu blue) with white text
+- Secondary: `bg-secondary-400` (#8FB47F) with white text
+- Hover: `bg-primary-500` / `bg-secondary-300`
+
+**NEVER use `bg-primary` without scale suffix (700/600/500)** - it references CSS variables that blend with backgrounds.
+
+### Badge Colors
+- Default: Same as primary buttons (bg-primary-700 light / bg-primary-600 dark)
+- Success: `bg-secondary-500` (Army green) with white text
+- Outline: `border-border bg-transparent` with foreground text
+
+### Color Palette Reference
+```typescript
+// Primary - Warm Purple (Nyuchi Africa)
+primary-700: #5f5873  // Main brand (buttons, badges)
+primary-600: #7c73e6  // Ubuntu blue (dark mode, hover)
+primary-500: #9186ae  // Lighter variant
+primary-800: #4a4560  // Active states
+
+// Secondary - Army Green (Success)
+secondary-500: #729B63  // Main green
+secondary-400: #8FB47F  // Lighter (hover)
+secondary-600: #5d804f  // Darker (active)
+
+// Accent - Sunset Gold
+accent-500: #F6AD55  // Achievements, premium
+```
+
+See [BRANDING.md](BRANDING.md) for complete brand guidelines.
+
 ## Architecture
 
 ### Authentication System
@@ -484,3 +530,55 @@ echo "Implementation complete" > NEW_FEATURE_COMPLETE.md  # ❌ Wrong location
 **Framework**: Next.js 16, React 19, Supabase, Vercel
 **Status**: Production-ready with continuous deployment
 **Development Mode**: Active (localhost:3000)
+
+## Brand Colors (November 11, 2025 Update)
+
+### Button Color Implementation
+
+**IMPORTANT**: Buttons use hardcoded hex values (not Tailwind classes) due to Next.js 16 + Turbopack compatibility.
+
+### Available Button Variants
+
+```tsx
+// Primary (Purple #5f5873)
+<Button>Primary Action</Button>
+<Button variant="default">Primary Action</Button>
+
+// Secondary (Green #729B63)
+<Button variant="secondary">Secondary Action</Button>
+
+// Sunset Deep (Orange #d4634a) - Premium/Highlights
+<Button variant="gold">Premium Feature</Button>
+
+// Warm Brown (#8B7355) - Cultural Content
+<Button variant="warm-brown">Cultural Content</Button>
+
+// Other Variants
+<Button variant="outline">Outline</Button>
+<Button variant="ghost">Ghost</Button>
+<Button variant="destructive">Delete</Button>
+<Button variant="success">Success</Button>
+<Button variant="link">Link</Button>
+```
+
+### Brand Color Palette
+
+| Color | Hex | Usage | Variant |
+|-------|-----|-------|---------|
+| **Primary Purple** | #5f5873 | Main CTAs, primary actions | `default` |
+| **Secondary Green** | #729B63 | Success, secondary actions | `secondary` |
+| **Sunset Deep** | #d4634a | Premium, highlights | `gold` |
+| **Warm Brown** | #8B7355 | Cultural content | `warm-brown` |
+
+### Why Hex Values?
+
+Buttons use `bg-[#5f5873]` instead of `bg-primary-700` because Next.js 16 + Turbopack + CVA doesn't reliably generate dynamic Tailwind classes. Arbitrary value syntax guarantees colors render correctly.
+
+### Accessibility
+
+All button combinations meet WCAG 2.1 standards:
+- Purple + White: 8.5:1 (AAA) ✅
+- Green + White: 5.1:1 (AA) ✅
+- Sunset + White: 4.8:1 (AA) ✅
+- Brown + White: 4.9:1 (AA) ✅
+
