@@ -82,6 +82,56 @@ accent-500: #F6AD55  // Achievements, premium
 
 See [BRANDING.md](BRANDING.md) for complete brand guidelines.
 
+### Marketing Site Design System
+
+**Visual Design Principles:**
+- Use gradient backgrounds instead of plain white/colors
+- Gradient text with `bg-gradient-to-r bg-clip-text text-transparent`
+- Hover effects with scale transforms and shadow transitions
+- Border-2 on cards with subtle hover states
+- Rounded-xl (12px) for modern icon containers
+- Leading-relaxed for improved readability
+
+**Gradient Patterns:**
+```tsx
+// Hero Section
+bg-gradient-to-br from-primary-700/10 via-background to-secondary-500/5
+
+// Stats Bar
+bg-gradient-to-r from-muted/50 via-muted/30 to-muted/50
+
+// Solutions Section
+bg-gradient-to-br from-secondary-500/5 via-background to-primary-700/5
+
+// CTA Section
+bg-gradient-to-br from-primary-700/10 via-secondary-500/5 to-accent-500/5
+```
+
+**Card Design:**
+```tsx
+// Feature Cards
+<Card className="border-2 hover:border-primary-700/50 hover:shadow-lg transition-all duration-300 group bg-card">
+  <CardContent className="p-6">
+    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-700/20 to-primary-600/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+      <Icon className="w-6 h-6 text-primary-700" />
+    </div>
+  </CardContent>
+</Card>
+```
+
+**Accessibility:**
+- All gradients maintain WCAG AA contrast ratios
+- Hover states work with keyboard navigation
+- Semantic HTML with proper headings (h1 → h6)
+- ARIA labels on interactive elements
+- Focus visible states on all interactive elements
+
+**Mobile Responsiveness:**
+- Grid layouts: `grid-cols-2 md:grid-cols-4` for stats
+- Text sizing: `text-4xl sm:text-5xl md:text-6xl` for headings
+- Padding: `px-4 sm:px-6` for consistent spacing
+- Buttons: `flex-col sm:flex-row` for stacked mobile layout
+
 ## Architecture
 
 ### Authentication System
