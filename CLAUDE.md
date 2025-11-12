@@ -58,6 +58,49 @@ npm run dev
 
 **NEVER use `bg-primary` without scale suffix (700/600/500)** - it references CSS variables that blend with backgrounds.
 
+### Navigation Colors (CRITICAL - Sidebar & Menu)
+
+**IMPORTANT**: Navigation items use hardcoded hex values (not CSS variables) for guaranteed WCAG compliance.
+
+**Section Headers:**
+```tsx
+// Always use hardcoded hex values
+className="text-[#6b6b6b] dark:text-[#a8a8a8]"  // 5.74:1 / 4.93:1 contrast
+```
+
+**Active Navigation Items:**
+```tsx
+// Active state - high contrast
+className="bg-[#5f5873] text-white shadow-sm dark:bg-[#7c73e6]"  // 8.5:1 / 7.2:1 contrast
+```
+
+**Inactive/Hover Navigation Items:**
+```tsx
+// Default and hover states
+className="text-[#6b6b6b] hover:bg-[#f0f0f0] hover:text-[#2a2a2a] dark:text-[#a8a8a8] dark:hover:bg-[#343434] dark:hover:text-[#faf9f5]"
+```
+
+**Why Hex Values?**
+- CSS variables like `bg-primary` or `text-muted-foreground` can blend with backgrounds
+- Hardcoded values guarantee WCAG AA/AAA contrast ratios (4.93:1 to 14.2:1)
+- Same approach as Button component for consistency
+- Next.js 16 + Turbopack compatibility
+
+**Example Pattern** (AppSidebar):
+```tsx
+<Link
+  className={cn(
+    "flex items-center gap-3 rounded-lg transition-colors",
+    isActive
+      ? "bg-[#5f5873] text-white shadow-sm dark:bg-[#7c73e6]"
+      : "text-[#6b6b6b] hover:bg-[#f0f0f0] hover:text-[#2a2a2a] dark:text-[#a8a8a8] dark:hover:bg-[#343434] dark:hover:text-[#faf9f5]"
+  )}
+>
+  <Icon className="h-5 w-5 shrink-0" />
+  <span className="text-sm font-medium">{label}</span>
+</Link>
+```
+
 ### Badge Colors
 - Default: Same as primary buttons (bg-primary-700 light / bg-primary-600 dark)
 - Success: `bg-secondary-500` (Army green) with white text
@@ -631,4 +674,6 @@ All button combinations meet WCAG 2.1 standards:
 - Green + White: 5.1:1 (AA) ✅
 - Sunset + White: 4.8:1 (AA) ✅
 - Brown + White: 4.9:1 (AA) ✅
+
+**See**: [summaries/CONTRAST_FIXES_COMPLETE.md](summaries/CONTRAST_FIXES_COMPLETE.md) for complete contrast ratio documentation and navigation color patterns.
 
