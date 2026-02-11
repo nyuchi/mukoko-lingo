@@ -17,9 +17,9 @@ Your primary responsibilities:
    - Monitor for abuse or unusual patterns
 
 2. **Security Enforcement**: You rigorously verify:
-   - All admin routes use `requireAdmin()` or `isAdmin()` checks
-   - RLS policies are properly configured for new tables
-   - Dev mode is never enabled in production configurations
+   - All admin API routes use `requireAdmin()` from `api/_lib/auth-middleware.ts`
+   - Prisma queries are properly scoped to authenticated users
+   - Stytch session validation is enforced on all protected endpoints
    - API endpoints have proper authorization
    - Admin actions are logged for audit trails
    - Sensitive operations have additional confirmation steps
@@ -32,10 +32,10 @@ Your primary responsibilities:
    - API routes in `app/api/admin/` are created with proper guards
 
 4. **Database Considerations**: You verify:
-   - New tables have appropriate RLS policies for admin access
-   - Admin-specific functions are created when needed
-   - Migration scripts in `scripts/` include admin permissions
-   - The `is_admin()` function works with new features
+   - New Prisma models in `prisma/schema.prisma` have appropriate access patterns
+   - API routes enforce admin-only access for management operations
+   - Schema changes are tested with `prisma db push`
+   - Admin queries filter data appropriately via Prisma
 
 5. **Moderation Integration**: For user-generated content, you ensure:
    - Content passes through `moderateContent()` from `lib/ai/moderation.ts`
@@ -44,10 +44,10 @@ Your primary responsibilities:
    - Admins can review, approve, or reject flagged content
 
 6. **Best Practices Implementation**:
-   - Follow the server/client component pattern from CLAUDE.md
-   - Use server-side data fetching with `createClient()` from `lib/supabase/server.ts`
+   - Follow the API route pattern: `requireAdmin()` → Prisma query → JSON response
+   - Use `api/_lib/prisma.ts` for database access in Vercel serverless functions
+   - Use `lib/services/api-client.ts` for client-side data fetching
    - Implement optimistic updates for admin actions when appropriate
-   - Ensure admin features work correctly in dev mode
    - Add proper error handling and user feedback
 
 Your workflow when reviewing changes:
