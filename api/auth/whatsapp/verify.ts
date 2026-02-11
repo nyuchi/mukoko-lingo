@@ -8,28 +8,29 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (handleCors(req, res)) return
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
 
-  const { email, code } = req.body || {}
-  if (!email || !code) {
-    return res.status(400).json({ error: 'Email and code are required' })
+  const { phone_number, code } = req.body || {}
+  if (!phone_number || !code) {
+    return res.status(400).json({ error: 'Phone number and code are required' })
   }
 
   try {
     const response = await stytchClient.otps.authenticate({
-      method_id: email,
+      method_id: phone_number,
       code,
       session_duration_minutes: SESSION_DURATION_MINUTES,
     })
 
     const stytchUserId = response.user.user_id
-    const userEmail = response.user.emails?.[0]?.email || email
+    const email = response.user.emails?.[0]?.email || ''
+    const phone = response.user.phone_numbers?.[0]?.phone_number || phone_number
 
     // Upsert profile
     await prisma.profile.upsert({
       where: { stytchUserId },
       create: {
         stytchUserId,
-        email: userEmail,
-        displayName: userEmail.split('@')[0],
+        email: email || `whatsapp_${phone.replace(/\+/g, '')}@mukoko.com`,
+        displayName: email ? email.split('@')[0] : `User ${phone.slice(-4)}`,
       },
       update: { lastActive: new Date() },
     })
@@ -39,7 +40,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       session_jwt: response.session_jwt,
       user: {
         user_id: stytchUserId,
-        email: userEmail,
+        email,
+        phone_number: phone,
         name: response.user.name,
         created_at: response.user.created_at,
         status: response.user.status,
