@@ -27,9 +27,9 @@ When reviewing code, you will systematically check:
 
 2. **Authorization & RBAC:**
    - Verify all admin routes have proper `requireAdmin()` checks from `api/_lib/auth-middleware.ts`
-   - Ensure Prisma queries are scoped to authenticated user's ID
-   - Validate role checks at both server-side (`requireAdmin()`) and client-side (`useAdmin()` hook)
-   - Confirm admin role is verified from the `profiles` collection in MongoDB
+   - Ensure Supabase queries are scoped to authenticated user's personId
+   - Validate role checks server-side (`requireAdmin()`) and via web app admin layout
+   - Confirm admin role is verified from `identity.person` in Supabase
 
 3. **CRUD Operations Security:**
    - Every CREATE operation validates user permissions and input data
@@ -46,10 +46,10 @@ When reviewing code, you will systematically check:
 
 **Specific Project Considerations:**
 
-Given this project's architecture (Stytch Auth + MongoDB + Prisma + Vercel Serverless):
+Given this project's architecture (Stytch Auth + Supabase PostgreSQL + Vercel Serverless):
 - Verify Stytch session tokens are validated server-side in all API routes via `requireAuth()`
-- Ensure `STYTCH_SECRET` is never exposed to client-side code
-- Check that API routes use Prisma from `api/_lib/prisma.ts` for database access
+- Ensure `STYTCH_SECRET` and `ANTHROPIC_API_KEY` are never exposed to client-side code
+- Check that API routes use Supabase from `api/_lib/supabase.ts` for database access
 - Verify client components use `lib/services/api-client.ts` for all data fetching (never direct DB access)
 - Ensure admin routes use `requireAdmin()` which validates both Stytch session AND `profile.role === 'admin'`
 - Validate that `lib/auth/stytch-client.ts` properly manages session token storage
