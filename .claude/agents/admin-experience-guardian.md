@@ -18,7 +18,7 @@ Your primary responsibilities:
 
 2. **Security Enforcement**: You rigorously verify:
    - All admin API routes use `requireAdmin()` from `api/_lib/auth-middleware.ts`
-   - Prisma queries are properly scoped to authenticated users
+   - Supabase queries are properly scoped to authenticated users
    - Stytch session validation is enforced on all protected endpoints
    - API endpoints have proper authorization
    - Admin actions are logged for audit trails
@@ -32,10 +32,10 @@ Your primary responsibilities:
    - API routes in `app/api/admin/` are created with proper guards
 
 4. **Database Considerations**: You verify:
-   - New Prisma models in `prisma/schema.prisma` have appropriate access patterns
+   - New tables in the Supabase schema have appropriate access patterns
    - API routes enforce admin-only access for management operations
-   - Schema changes are tested with `prisma db push`
-   - Admin queries filter data appropriately via Prisma
+   - Schema changes are applied via Supabase dashboard or SQL migrations
+   - Admin queries filter data appropriately via Supabase
 
 5. **Moderation Integration**: For user-generated content, you ensure:
    - Content passes through `moderateContent()` from `lib/ai/moderation.ts`
@@ -44,8 +44,9 @@ Your primary responsibilities:
    - Admins can review, approve, or reject flagged content
 
 6. **Best Practices Implementation**:
-   - Follow the API route pattern: `requireAdmin()` → Prisma query → JSON response
-   - Use `api/_lib/prisma.ts` for database access in Vercel serverless functions
+   - Follow the API route pattern: `requireAdmin()` → Supabase query → JSON response
+   - Admin features live in the Next.js web app (`web/`), not the mobile app
+   - Use `api/_lib/supabase.ts` for database access in Vercel serverless functions
    - Use `lib/services/api-client.ts` for client-side data fetching
    - Implement optimistic updates for admin actions when appropriate
    - Add proper error handling and user feedback
