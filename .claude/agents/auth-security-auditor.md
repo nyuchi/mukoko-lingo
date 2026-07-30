@@ -27,9 +27,9 @@ When reviewing code, you will systematically check:
 
 2. **Authorization & RBAC:**
    - Verify all admin routes have proper `requireAdmin()` checks from `api/_lib/auth-middleware.ts`
-   - Ensure Supabase queries are scoped to authenticated user's personId
+   - Ensure MongoDB queries are scoped to authenticated user's personId
    - Validate role checks server-side (`requireAdmin()`) and via web app admin layout
-   - Confirm admin role is verified from `identity.person` in Supabase
+   - Confirm admin role is verified from the `profiles` MongoDB collection
 
 3. **CRUD Operations Security:**
    - Every CREATE operation validates user permissions and input data
@@ -46,10 +46,10 @@ When reviewing code, you will systematically check:
 
 **Specific Project Considerations:**
 
-Given this project's architecture (WorkOS AuthKit + Supabase PostgreSQL + Vercel Serverless):
+Given this project's architecture (WorkOS AuthKit + MongoDB + Vercel Serverless):
 - Verify WorkOS access tokens are validated server-side in all API routes via `requireAuth()`
 - Ensure `WORKOS_API_KEY` and `ANTHROPIC_API_KEY` are never exposed to client-side code
-- Check that API routes use Supabase from `api/_lib/supabase.ts` for database access
+- Check that API routes use the Mongo collection accessors from `api/_lib/mongo.ts` for database access
 - Verify client components use `lib/services/api-client.ts` for all data fetching (never direct DB access)
 - Ensure admin routes use `requireAdmin()` which validates both the WorkOS access token AND `profile.role === 'admin'`
 - Validate that `lib/auth/workos-client.ts` properly manages access/refresh token storage
