@@ -19,7 +19,7 @@ Your primary responsibilities:
 2. **Security Enforcement**: You rigorously verify:
    - All admin API routes use `requireAdmin()` from `api/_lib/auth-middleware.ts`
    - Supabase queries are properly scoped to authenticated users
-   - Stytch session validation is enforced on all protected endpoints
+   - WorkOS access-token validation is enforced on all protected endpoints
    - API endpoints have proper authorization
    - Admin actions are logged for audit trails
    - Sensitive operations have additional confirmation steps
