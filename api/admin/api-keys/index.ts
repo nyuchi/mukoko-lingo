@@ -9,30 +9,25 @@
  * with `surfaceContext: 'lingo'`, owned by an `entity.entities` org
  * (`ownerEntityId`).
  *
- * Roles: admin (platform) or org_admin (organization-level)
+ * Restricted to platform admins. There is no ecosystem-wide concept yet of
+ * an "org admin" who administers a specific `entity.entities` org (a
+ * `classMemberships` teacher role is scoped to a class, not an org, and
+ * carries no relationship to `ownerEntityId`) — so anything short of a full
+ * platform-admin check here would let any authenticated user with some
+ * unrelated role mint a live API key attributed to an arbitrary org.
  */
 
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { handleCors } from '../../_lib/cors'
-import { requireAuth } from '../../_lib/auth-middleware'
-import { classMemberships, platformApiKeys, getDb } from '../../_lib/mongo'
+import { requireAdmin } from '../../_lib/auth-middleware'
+import { platformApiKeys, getDb } from '../../_lib/mongo'
 import { buildApiKeyDoc, toApiKeySummaries } from '../../../lib/db/api-key-shape'
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (handleCors(req, res)) return
 
   try {
-    const user = await requireAuth(req)
-
-    // Verify org admin or platform admin
-    if (user.role !== 'admin') {
-      const membershipsCol = await classMemberships()
-      const membership = await membershipsCol.findOne({ person_id: user.personId, role: 'teacher' })
-
-      if (!membership) {
-        return res.status(403).json({ error: 'Org admin or platform admin role required' })
-      }
-    }
+    const user = await requireAdmin(req)
 
     const col = await platformApiKeys()
 
@@ -51,9 +46,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(400).json({ error: 'name and organization_id are required' })
       }
 
-      // Lightweight existence check — organization_id must reference a real
-      // entity.entities document. Not a full authorization check (e.g. we
-      // don't verify the caller belongs to that org); see PR description.
+      // organization_id must reference a real entity.entities document.
+      // Caller-org membership isn't checked because the caller is already
+      // a platform admin (requireAdmin above) — trusted to issue keys for
+      // any org, same as every other api/admin/** route.
       const entitiesCol = (await getDb('entity')).collection('entities')
       const entity = await entitiesCol.findOne({ _id: ownerEntityId })
       if (!entity) {
