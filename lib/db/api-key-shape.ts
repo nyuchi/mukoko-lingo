@@ -48,18 +48,20 @@ export function generateApiKey(): string {
 }
 
 /**
- * Keyed hash (HMAC-SHA256) rather than a bare SHA-256 digest. The API key
- * itself is a 256-bit random value, so brute-forcing the digest is already
- * infeasible — but a bare hash is still reversible via a precomputed table
- * if the verifier's database ever leaks; keying it to a server-side secret
- * (never stored alongside `keyHashedSecret`) defeats that regardless.
+ * scrypt (not a bare SHA-256/HMAC digest) — CodeQL's insufficient-password-hash
+ * query flags any fast digest here regardless of keying, since it can't tell
+ * a high-entropy generated secret from a low-entropy user password. scrypt
+ * costs real CPU/memory per hash, satisfies that check, and this only runs
+ * at key-issuance time (admin create/rotate), never on the per-request
+ * verification hot path, so the extra cost is free. `API_KEY_HASH_SECRET`
+ * is used as the scrypt salt and is never stored alongside `keyHashedSecret`.
  */
 export function hashApiKey(key: string): string {
   const pepper = process.env.API_KEY_HASH_SECRET
   if (!pepper) {
     throw new Error('API_KEY_HASH_SECRET must be set to hash API keys')
   }
-  return crypto.createHmac('sha256', pepper).update(key).digest('hex')
+  return crypto.scryptSync(key, pepper, 32).toString('hex')
 }
 
 /**

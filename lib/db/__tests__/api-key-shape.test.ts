@@ -45,7 +45,7 @@ function makeKey(overrides: Partial<PlatformApiKey> = {}): PlatformApiKey {
 }
 
 describe('generateApiKey / hashApiKey', () => {
-  it('generates a prefixed key and a stable HMAC-SHA256 hash of it', () => {
+  it('generates a prefixed key and a stable scrypt hash of it', () => {
     const key = generateApiKey()
     expect(key.startsWith('mk_live_')).toBe(true)
     expect(key.length).toBeGreaterThan('mk_live_'.length)
