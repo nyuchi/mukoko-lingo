@@ -47,8 +47,19 @@ export function generateApiKey(): string {
   return `${prefix}${secret}`
 }
 
+/**
+ * Keyed hash (HMAC-SHA256) rather than a bare SHA-256 digest. The API key
+ * itself is a 256-bit random value, so brute-forcing the digest is already
+ * infeasible — but a bare hash is still reversible via a precomputed table
+ * if the verifier's database ever leaks; keying it to a server-side secret
+ * (never stored alongside `keyHashedSecret`) defeats that regardless.
+ */
 export function hashApiKey(key: string): string {
-  return crypto.createHash('sha256').update(key).digest('hex')
+  const pepper = process.env.API_KEY_HASH_SECRET
+  if (!pepper) {
+    throw new Error('API_KEY_HASH_SECRET must be set to hash API keys')
+  }
+  return crypto.createHmac('sha256', pepper).update(key).digest('hex')
 }
 
 /**

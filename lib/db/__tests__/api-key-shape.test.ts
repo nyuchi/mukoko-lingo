@@ -11,6 +11,10 @@ import {
 } from '../api-key-shape'
 import { LINGO_SURFACE_CONTEXT, type PlatformApiKey } from '../types'
 
+beforeAll(() => {
+  process.env.API_KEY_HASH_SECRET = 'test-secret-do-not-use-in-prod'
+})
+
 function makeKey(overrides: Partial<PlatformApiKey> = {}): PlatformApiKey {
   return {
     _id: 'key-1',
@@ -41,7 +45,7 @@ function makeKey(overrides: Partial<PlatformApiKey> = {}): PlatformApiKey {
 }
 
 describe('generateApiKey / hashApiKey', () => {
-  it('generates a prefixed key and a stable sha256 hash of it', () => {
+  it('generates a prefixed key and a stable HMAC-SHA256 hash of it', () => {
     const key = generateApiKey()
     expect(key.startsWith('mk_live_')).toBe(true)
     expect(key.length).toBeGreaterThan('mk_live_'.length)
