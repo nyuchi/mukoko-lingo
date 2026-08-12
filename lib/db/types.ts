@@ -31,7 +31,6 @@ export interface Person {
   gender?: string | null
   birthdate?: Date | null
   workosUserId?: string | null
-  stytchUserId?: string | null
   isActive: boolean
   lastSeenAt?: Date | null
   createdAt: Date
