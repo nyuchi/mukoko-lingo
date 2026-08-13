@@ -6,15 +6,20 @@
  * tutor and the skills API disagree about what a score means.
  */
 
-import { skills, SKILL_LEVELS } from '../skills-data'
+import { skills, linguisticSkills, domainSkills, SKILL_LEVELS } from '../skills-data'
 
 const UI_LANGUAGES = ['en', 'sn', 'nd', 'sw', 'zh'] as const
 const CORE_SKILLS = ['pronunciation', 'vocabulary', 'grammar', 'comprehension', 'conversation']
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 
 describe('skills catalogue', () => {
-  it('defines exactly the five core skills', () => {
-    expect(skills.map(s => s.name).sort()).toEqual([...CORE_SKILLS].sort())
+  it('defines exactly the five core linguistic skills', () => {
+    expect(linguisticSkills.map(s => s.name).sort()).toEqual([...CORE_SKILLS].sort())
+    for (const skill of linguisticSkills) expect(skill.kind).toBe('linguistic')
+  })
+
+  it('is the linguistic and domain sets combined', () => {
+    expect(skills).toEqual([...linguisticSkills, ...domainSkills])
   })
 
   it('uses stable, unique UUID string ids — never ObjectIds', () => {
@@ -23,8 +28,9 @@ describe('skills catalogue', () => {
     for (const id of ids) expect(id).toMatch(UUID_RE)
   })
 
-  it('has a unique, contiguous sort order', () => {
-    expect(skills.map(s => s.sort_order).sort((a, b) => a - b)).toEqual([1, 2, 3, 4, 5])
+  it('has a unique, contiguous sort order across both axes', () => {
+    const expected = Array.from({ length: skills.length }, (_, i) => i + 1)
+    expect(skills.map(s => s.sort_order).sort((a, b) => a - b)).toEqual(expected)
   })
 
   it('is active and carries an icon', () => {
@@ -41,6 +47,36 @@ describe('skills catalogue', () => {
         expect(skill.description[lang]?.trim()).toBeTruthy()
       }
     }
+  })
+})
+
+describe('domain skills', () => {
+  const SCENARIO_ID_RE = /^01977100-0f02-7000-8000-[0-9a-f]{12}$/
+  // Every category present in lingo.phrases, verified against the cluster.
+  const ALL_CATEGORIES = [
+    'business', 'emotions', 'family', 'food', 'greetings', 'health', 'money',
+    'school', 'shopping', 'tourism', 'transport', 'weather', 'work',
+  ]
+
+  it('is tagged as domain, never linguistic', () => {
+    for (const skill of domainSkills) expect(skill.kind).toBe('domain')
+  })
+
+  it('links only to well-formed scenario ids', () => {
+    for (const skill of domainSkills) {
+      for (const id of skill.scenario_ids ?? []) expect(id).toMatch(SCENARIO_ID_RE)
+    }
+  })
+
+  it('covers all 10 scenarios exactly once', () => {
+    const linked = domainSkills.flatMap(s => s.scenario_ids ?? [])
+    expect(new Set(linked).size).toBe(linked.length)
+    expect(linked).toHaveLength(10)
+  })
+
+  it('claims every phrase category exactly once, leaving none stranded', () => {
+    const claimed = domainSkills.flatMap(s => s.categories ?? [])
+    expect([...new Set(claimed)].sort()).toEqual([...ALL_CATEGORIES].sort())
   })
 })
 
