@@ -32,6 +32,9 @@ function httpFail(status: number) {
   return { ok: false, status, text: async () => `error ${status}` }
 }
 
+const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages'
+const GATEWAY_URL = 'https://ai-gateway.vercel.sh/v1/chat/completions'
+
 const originalFetch = global.fetch
 
 afterEach(() => {
@@ -97,7 +100,7 @@ describe('transport wiring', () => {
 
     expect(result).toMatchObject({ text: 'Mhoro!', provider: 'anthropic' })
     const [url, init] = fetchMock.mock.calls[0]
-    expect(url).toBe('https://api.anthropic.com/v1/messages')
+    expect(url).toBe(ANTHROPIC_URL)
     expect(init.headers['x-api-key']).toBe('sk-ant-test')
     expect(init.headers.Authorization).toBeUndefined()
     // Anthropic takes the system prompt as a top-level field.
@@ -120,7 +123,7 @@ describe('transport wiring', () => {
 
     expect(result).toMatchObject({ text: '你好!', provider: 'gateway', model: GATEWAY_KIMI_MODEL })
     const [url, init] = fetchMock.mock.calls[0]
-    expect(url).toBe('https://ai-gateway.vercel.sh/v1/chat/completions')
+    expect(url).toBe(GATEWAY_URL)
     expect(init.headers.Authorization).toBe('Bearer vck_test')
     expect(init.headers['x-api-key']).toBeUndefined()
     // OpenAI shape: the system prompt is a leading message.
@@ -137,7 +140,8 @@ describe('transport wiring', () => {
     await completeChat({ messages: [{ role: 'user', content: 'hi' }] })
 
     for (const [url] of fetchMock.mock.calls) {
-      expect(url).not.toContain('api.anthropic.com')
+      // Compare the parsed host, not a substring of the URL.
+      expect(new URL(url).host).not.toBe('api.anthropic.com')
     }
   })
 })
@@ -228,9 +232,11 @@ describe('circuit breaker', () => {
     })
     resetCircuits()
 
-    // Anthropic always fails; the gateway always works.
+    // Anthropic always fails; the gateway always works. Match the endpoint
+    // exactly — a substring test on the host would accept any URL merely
+    // containing it (CodeQL js/incomplete-url-substring-sanitization).
     global.fetch = jest.fn().mockImplementation(async (url: string) =>
-      url.includes('api.anthropic.com') ? httpFail(500) : gatewayOk('still up')
+      url === ANTHROPIC_URL ? httpFail(500) : gatewayOk('still up')
     ) as any
 
     for (let i = 0; i < 5; i++) {
