@@ -16,6 +16,7 @@ import {
   AiNotConfiguredError,
   AiUnavailableError,
 } from '../../_lib/ai-provider'
+import { moderateUserContent } from '../../_lib/moderation'
 
 const log = createLogger('ai')
 
@@ -65,6 +66,27 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(400).json({ error: 'messages array is required' })
     }
 
+    // Moderate here, not just in the client. `lib/ai/moderation.ts` runs in the
+    // caller's bundle, so it only protects users who go through our UI —
+    // posting straight to this route skipped every guardrail.
+    const lastUserMessage = [...messages]
+      .reverse()
+      .find((m: any) => m?.role === 'user' && typeof m?.content === 'string')
+    if (lastUserMessage) {
+      const verdict = await moderateUserContent({
+        personId: user.personId,
+        content: lastUserMessage.content,
+        contentType: 'chat_message',
+      })
+      if (verdict) {
+        return res.status(400).json({
+          error: verdict.reason || 'Message blocked by content guardrails',
+          moderated: true,
+          categories: verdict.categories,
+        })
+      }
+    }
+
     const result = await completeChat({
       messages,
       system: system_prompt || undefined,
@@ -99,6 +121,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     log.error(`Chat proxy error: ${error.message}`)
-    return res.status(500).json({ error: error.message || 'Internal server error' })
+    // Generic body: raw exception text leaks driver internals, collection and
+    // field names, and connection strings to any caller who can trigger one.
+    return res.status(500).json({ error: 'Internal server error' })
   }
 }
