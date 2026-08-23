@@ -26,7 +26,7 @@ const log = createLogger('ai')
  * `Math.min(n, 4096)` alone let a negative or fractional value through to the
  * provider, which answers with a 400 that surfaces as a 502.
  */
-function clampMaxTokens(raw: unknown): number {
+export function clampMaxTokens(raw: unknown): number {
   const n = Math.floor(Number(raw))
   if (!Number.isFinite(n) || n < 1) return 1024
   return Math.min(n, 4096)
