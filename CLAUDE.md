@@ -68,6 +68,11 @@ npm run test:coverage    # Run tests with coverage report
 
 # Code Quality
 npx tsc --noEmit         # TypeScript type checking
+npm run lint             # ESLint
+node scripts/docs/check-docs.js   # Documentation drift check (also runs in CI)
+
+# Release (automated — see RELEASES.md)
+npm run release:dry      # What a merge to main would tag, writing nothing
 ```
 
 ## Environment Setup
@@ -237,9 +242,13 @@ nyuchi-lingo/
 │
 ├── assets/                       # App icons, splash screens, images
 ├── public/                       # Static web assets
-├── scripts/                      # DB migration scripts + utilities
+├── scripts/                      # DB scripts, release + docs automation
+│   ├── release/                  # Version derivation, changelog surgery, CLI
+│   └── docs/check-docs.js        # Documentation drift check (CI job)
 ├── docs/                         # Technical documentation
-├── .github/workflows/ci.yml     # CI pipeline (TypeScript + tests + web build)
+├── .github/workflows/
+│   ├── ci.yml                    # lint → typecheck → test → docs → builds
+│   └── release.yml               # Auto-tag + GitHub Release after green CI
 └── .claude/agents/               # Custom Claude Code agent definitions
 ```
 
@@ -257,7 +266,7 @@ nyuchi-lingo/
 | Auth | WorkOS AuthKit (hosted sign-in, PKCE authorization-code flow) |
 | AI | Cloudflare Workers AI — Qwen3 30B A3B, via Cloudflare AI Gateway |
 | Testing | Jest 29 + jest-expo + React Testing Library |
-| CI/CD | GitHub Actions (typecheck → test → build-web) |
+| CI/CD | GitHub Actions — CI (lint, typecheck, test, docs, builds) → Release (auto-tag) |
 
 ### Authentication System
 
@@ -615,10 +624,13 @@ built server-side (see AI Integration above).
 ## Testing Infrastructure
 
 - **Framework**: Jest 29 with jest-expo preset, React Testing Library
-- **CI pipeline**: GitHub Actions runs TypeScript check + tests on push to `main` and `feature/*`
-- **Coverage**: Tracked via `jest --coverage`, collected from `lib/**` and `components/**`
+- **CI pipeline**: GitHub Actions runs lint, TypeScript check, tests, the docs
+  drift check and both builds on pushes to `main`/`feature/*` and on every PR
+- **Coverage**: Tracked via `jest --coverage`, collected from `lib/**` and
+  `components/**` — `api/**` and `scripts/**` tests run but do **not** count
+  toward the thresholds, so the backend has no coverage floor
 
-**Test Suites** (38 suites, 423 tests). Run `npx jest --listTests` for the
+**Test Suites** (42 suites, 464 tests). Run `npx jest --listTests` for the
 current set; the security-relevant ones are worth knowing by name:
 
 *Backend (`api/**`)* — note these are **not** included in
@@ -654,6 +666,18 @@ current set; the security-relevant ones are worth knowing by name:
 - `lib/hooks/__tests__/*` - Language, theme and UI-language hooks
 - `components/__tests__/*` - Flash card, mini quiz, daily lesson, celebration
 
+*Tooling (`scripts/**`)* — these guard the automation, not the app:
+- `scripts/release/__tests__/version.test.js` - Which commit types release, and
+  that a pre-1.0 breaking change stays inside 0.x
+- `scripts/release/__tests__/changelog.test.js` - `[Unreleased]` moves under a
+  version heading without disturbing published sections; an empty section
+  cannot produce a hollow release
+- `scripts/release/__tests__/version-files.test.js` - Each version transform
+  runs against the **real** project files, so a reformat that breaks a marker
+  fails in the PR rather than mid-release
+- `scripts/docs/__tests__/check-docs.test.js` - The drift checker catches real
+  drift without crying wolf over a legitimate `mukoko-lingo` slug or hostname
+
 **Mocking `api/**` modules in tests**: Babel hoists `import` above the
 `const mockX = jest.fn()` declarations, so a `jest.mock` factory that captures
 those bindings directly reads them in their temporal dead zone and silently
@@ -664,15 +688,48 @@ Modules that read `process.env` into consts at import time (e.g.
 
 ## CI/CD Pipeline
 
-**GitHub Actions** (`.github/workflows/ci.yml`):
+### CI (`.github/workflows/ci.yml`)
 
-1. **TypeScript Check** - `npx tsc --noEmit` (Node 20)
-2. **Run Tests** - `npm test -- --ci --coverage` (Node 20)
-3. **Build Web** - `npx expo export --platform web` (depends on steps 1+2 passing)
-   - Uploads `dist/` as artifact (7-day retention)
-4. Mobile builds (iOS/Android via EAS) - commented out, require `EXPO_TOKEN`
+**Triggers**: push to `main` or `feature/*`, and every pull request to `main`.
 
-**Triggers**: Push to `main` or `feature/*`, Pull requests to `main`
+| Job | What it runs |
+|---|---|
+| `lint` | `npm run lint` (mobile) |
+| `typecheck` | `npx tsc --noEmit` |
+| `test` | `npm test -- --ci --coverage`, uploads `coverage/` (7 days) |
+| `docs` | `node scripts/docs/check-docs.js` — dependency-free drift check |
+| `build-mobile-web` | `npx expo export --platform web`, uploads `dist/` (needs lint + typecheck + test) |
+| `lint-web` / `typecheck-web` / `build-web` | The same three for the Next.js app in `web/` |
+| `python` | `ruff check .` + `pytest` for the analytics functions |
+
+Mobile builds (iOS/Android via EAS) are present but commented out — they need
+an `EXPO_TOKEN`.
+
+**Docs drift check** (`scripts/docs/check-docs.js`) fails the build when: shipped
+code reads a `process.env` variable `.env.example` does not document; a retired
+name (`ANTHROPIC_API_KEY`, `AI_GATEWAY_API_KEY`, the invented `mukoko-lingo`
+database) reappears outside the history that legitimately mentions it; or
+CLAUDE.md's test-suite count no longer matches the suites on disk. Add a
+retired name to `RETIRED_TERMS` whenever you remove one.
+
+### Release (`.github/workflows/release.yml`)
+
+Releases are **automatic**. The workflow fires on the CI workflow *completing
+successfully* on `main` (`workflow_run`), so a merge whose tests fail is never
+tagged. It derives the next version from Conventional Commit subjects since the
+last tag, bumps every version file, moves `CHANGELOG.md`'s `[Unreleased]`
+section under the new heading, commits `chore(release): vX.Y.Z [skip ci]`, tags,
+and publishes a GitHub Release whose notes are that changelog section.
+
+- `feat:` → minor, `fix:`/`perf:`/`refactor:` → patch, `docs:`/`chore:`/`ci:`/
+  `test:` → **no release** (the job reports "No release" and exits 0)
+- Below 1.0.0 a breaking change lands as a minor; cutting 1.0 is a manual
+  `workflow_dispatch`
+- If branch protection rejects the bot's push, the tag and Release still go out
+  against the merge commit and the job logs a warning
+
+Preview with `npm run release:dry`. Full details, including the failure table:
+[RELEASES.md](RELEASES.md).
 
 ## Common Workflows
 
@@ -760,20 +817,30 @@ The `Phrase` model supports **4 languages**: English, Shona, Ndebele, and Chines
 - **README.md** - Project overview and quick start
 - **BRANDING.md** - Brand guidelines, colors, typography
 - **SECURITY.md** - Security architecture, WorkOS AuthKit
-- **CHANGELOG.md** - Version history
-- **RELEASES.md** - Release management and versioning
+- **CHANGELOG.md** - Version history; `[Unreleased]` is published as release notes
+- **CONTRIBUTING.md** - Commit conventions and their release effect, PR flow
+- **RELEASES.md** - Release automation, channels, what is still manual
 
 ### Technical Documentation (`/docs/`):
-- **[docs/EMAIL_TEMPLATES.md](docs/EMAIL_TEMPLATES.md)** - Branded email templates (stale — predates both the Stytch and WorkOS integrations; email templates now live in the WorkOS AuthKit dashboard)
-- **[docs/TEST_COVERAGE_ANALYSIS.md](docs/TEST_COVERAGE_ANALYSIS.md)** - Test suite analysis
+- **[docs/TEST_COVERAGE_ANALYSIS.md](docs/TEST_COVERAGE_ANALYSIS.md)** - What the suite covers, where the floors are missing
+- **[docs/ECOSYSTEM_DATA_MIGRATION.md](docs/ECOSYSTEM_DATA_MIGRATION.md)** - Moving onto the shared ecosystem collections
+- **[docs/EMAIL_TEMPLATES.md](docs/EMAIL_TEMPLATES.md)** - Branded transactional email, now authored in the WorkOS AuthKit dashboard
 
 ### Scripts (`/scripts/`):
-- **[scripts/migrations-README.md](scripts/migrations-README.md)** - Database migration guide
-- **[scripts/MIGRATION_SUMMARY.md](scripts/MIGRATION_SUMMARY.md)** - Migration history
+- `scripts/create-indexes.ts` - MongoDB index creation (schemaless DB, indexes are the schema)
+- `scripts/seed-phrases.ts` / `scripts/seed-skills.ts` - Seed content collections
+- `scripts/release/` - Release automation: `version.js` (bump rules),
+  `changelog.js` (`[Unreleased]` surgery), `version-files.js` (per-file
+  transforms), `prepare-release.js` (CLI, `--dry-run`)
+- `scripts/docs/check-docs.js` - Documentation drift check (CI job `docs`)
 - **[scripts/DATABASE_SCHEMA_REVIEW.md](scripts/DATABASE_SCHEMA_REVIEW.md)** - Database schema documentation
-- `scripts/028_seed_standards_guardrails.sql` - Database seed data
-- `scripts/apply-migrations.sh` - Migration runner
-- `scripts/apply-critical-fixes.sh` - Critical fix runner
+- **[scripts/MIGRATION_SUMMARY.md](scripts/MIGRATION_SUMMARY.md)** - Migration history
+
+### Agents (`/.claude/agents/`):
+- `docs-maintainer` - Keeps the written record true; run it whenever a change
+  alters something documented, and whenever the drift check fails
+- `admin-experience-guardian` - New features get the admin controls to manage them
+- `auth-security-auditor` - Auth, RBAC and CRUD authorization review
 
 ### Creating New Documentation
 
@@ -781,13 +848,14 @@ When creating new completion summaries, migration docs, or work records:
 1. Place technical docs in `/docs/`
 2. Place migration/script docs in `/scripts/`
 3. Keep root directory clean - only essential, frequently-referenced documents belong there
+4. Never hand-edit a version number — the release job owns every one of them
 
 ---
 
 ## Project Status
 
 **Current Version**: 0.0.1 (April 2026)
-**Framework**: Expo SDK 54 / React Native 0.81 / React 19
+**Framework**: Expo SDK 57 / React Native 0.86 / React 19
 **Backend**: MongoDB + WorkOS AuthKit + Vercel Serverless
 **AI**: Cloudflare Workers AI (`@cf/qwen/qwen3-30b-a3b-fp8`) via Cloudflare AI Gateway
 **Status**: Active development

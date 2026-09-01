@@ -132,18 +132,28 @@ MongoDB cluster shared across the Nyuchi ecosystem — `lingo` is Lingo's own da
 
 GitHub Actions runs on push to `main`/`feature/*` and PRs to `main`:
 
-1. **TypeScript Check** — `npx tsc --noEmit`
-2. **Jest Tests** — `npm test -- --ci --coverage`
-3. **Build Web** — `npx expo export --platform web`
+1. **Lint** — `npm run lint` (mobile and web)
+2. **TypeScript Check** — `npx tsc --noEmit` (mobile and web)
+3. **Jest Tests** — `npm test -- --ci --coverage`
+4. **Docs Drift Check** — `node scripts/docs/check-docs.js`
+5. **Python** — `ruff check .` + `pytest` for the analytics functions
+6. **Builds** — `npx expo export --platform web` and `next build`
+
+**Releases are automatic.** When CI goes green on `main`, the release workflow
+derives the next version from the Conventional Commit subjects since the last
+tag, bumps every version file, cuts `CHANGELOG.md`'s `[Unreleased]` section
+into a version heading, tags, and publishes a GitHub Release. A docs- or
+chore-only merge releases nothing. See **[RELEASES.md](RELEASES.md)**.
 
 ## Documentation
 
-- **[ARCHITECTURE.md](ARCHITECTURE.md)** — 5-layer component hierarchy and data layer awareness
 - **[CLAUDE.md](CLAUDE.md)** — Developer guide & full architecture reference
 - **[BRANDING.md](BRANDING.md)** — Brand guidelines & Five African Minerals design system
 - **[SECURITY.md](SECURITY.md)** — Security architecture
-- **[CONTRIBUTING.md](CONTRIBUTING.md)** — Contribution guidelines
+- **[CONTRIBUTING.md](CONTRIBUTING.md)** — Contribution guidelines, commit conventions
+- **[RELEASES.md](RELEASES.md)** — Release automation and channels
 - **[CHANGELOG.md](CHANGELOG.md)** — Version history
+- **[docs/TEST_COVERAGE_ANALYSIS.md](docs/TEST_COVERAGE_ANALYSIS.md)** — What the test suite covers
 
 ## Brand — Five African Minerals
 
