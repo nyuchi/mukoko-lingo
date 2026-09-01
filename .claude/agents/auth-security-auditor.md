@@ -48,7 +48,7 @@ When reviewing code, you will systematically check:
 
 Given this project's architecture (WorkOS AuthKit + MongoDB + Vercel Serverless):
 - Verify WorkOS access tokens are validated server-side in all API routes via `requireAuth()`
-- Ensure `WORKOS_API_KEY` and `ANTHROPIC_API_KEY` are never exposed to client-side code
+- Ensure `WORKOS_API_KEY` and `CLOUDFLARE_API_TOKEN` are never exposed to client-side code
 - Check that API routes use the Mongo collection accessors from `api/_lib/mongo.ts` for database access
 - Verify client components use `lib/services/api-client.ts` for all data fetching (never direct DB access)
 - Ensure admin routes use `requireAdmin()` which validates both the WorkOS access token AND `profile.role === 'admin'`
