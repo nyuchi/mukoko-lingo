@@ -9,6 +9,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+- **Assessments are graded on the server** — `POST /api/assessments/submit`
+  recorded whatever `score` and `passed` the caller sent, and promoted
+  `user_skills.current_level` on that basis, so anyone who could reach the
+  route could promote themselves. Because `user_skills.current_score` is read
+  by `api/_lib/tutor-prompt.ts` for every AI turn, a forged score did not only
+  unlock content — it changed how Shamwari taught that learner. The route now
+  computes the score from the submitted answers against an answer key it
+  resolves itself (the `lingo.assessments` document when one exists, otherwise
+  the shared question bank), and **rejects** a body carrying `score` or
+  `passed` rather than ignoring it. A level is only promoted by a real
+  assessment document naming a `target_level`, so a pass on a client-assembled
+  quiz records a score and nothing more. The client now submits answers; it
+  still grades locally for immediate feedback, but only the server's number is
+  persisted.
+- **`user_skills` rows are written against the `skills._id`** — the question
+  bank labels skills by name, and a name in that column produces a row the
+  tutor prompt and the skills API both silently ignore. The route resolves
+  either form before writing.
+
+### Fixed
+- **Assessment routes resolve a UUID `_id`** (`api/_lib/doc-id.ts`) — all three
+  looked assessments up by `ObjectId` only. `lingo.assessments` is empty and
+  unseeded while every populated `lingo` collection uses UUID strings, so a
+  UUID-seeded assessment would have 404'd from `GET /assessments/:id`, gone
+  unjoined in the history, and — worst — skipped the promotion branch in submit
+  without any error.
+
 ### Changed
 - **The release job pushes its version bump with `RELEASE_BUMP_TOKEN`** — the
   org-wide PAT that can push through branch protection, with a per-repo
