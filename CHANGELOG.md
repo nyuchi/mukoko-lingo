@@ -24,6 +24,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   quiz records a score and nothing more. The client now submits answers; it
   still grades locally for immediate feedback, but only the server's number is
   persisted.
+- **Log messages are data, not format strings** (`api/_lib/logger.ts`) — every
+  route builds its message with a template literal over request data, and Node
+  reads `console.error`'s first argument as a `util.format` template. A `%s` in
+  a submitted field could swallow the next argument and rewrite the line, and a
+  newline could forge an entire extra entry. The prefix and message are now
+  passed as arguments to a constant `'%s %s'`, and control characters are
+  replaced. Flagged by CodeQL on the grading PR, whose new log lines carry a
+  caller-supplied `skill_id` and `assessment_id`.
 - **`user_skills` rows are written against the `skills._id`** — the question
   bank labels skills by name, and a name in that column produces a row the
   tutor prompt and the skills API both silently ignore. The route resolves

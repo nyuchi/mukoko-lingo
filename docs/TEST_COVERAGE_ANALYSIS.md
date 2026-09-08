@@ -1,7 +1,7 @@
 # Test Coverage Analysis
 
 **Last measured**: September 2026 · **Framework**: Jest 29 + jest-expo
-**Suites**: 44 · **Tests**: 505 · all passing
+**Suites**: 45 · **Tests**: 510 · all passing
 
 Regenerate the numbers below with `npm run test:coverage`. They are a snapshot,
 not a contract — the contract is the threshold block in `package.json`.
@@ -69,6 +69,7 @@ The listing in CLAUDE.md is the current index. The ones worth knowing by name:
 | `api/ai/__tests__/moderate-json.test.ts` | A reasoning model's `<think>` block cannot silently disable AI moderation |
 | `api/_lib/__tests__/ai-provider.test.ts` | Workers AI wiring, the two-part config gate, the circuit breaker |
 | `api/_lib/__tests__/jose-cjs.test.ts` | Guards the jose v6 ESM/CJS crash that once took sign-in down |
+| `api/_lib/__tests__/logger.test.ts` | Request data reaches a log as an argument, never as a `util.format` template |
 | `lib/workos/__tests__/config.test.ts` | Redirect allowlist, including the 172.16–172.31 private-range boundary |
 | `lib/ai/__tests__/prompt-injection.test.ts` | Allowlists hold; no caller text reaches the prompt |
 | `api/_lib/__tests__/assessment-grading.test.ts` | A score is computed from answers — a partial submission cannot claim 100%, and only a real assessment promotes a level |

@@ -666,7 +666,7 @@ built server-side (see AI Integration above).
   `components/**` — `api/**` and `scripts/**` tests run but do **not** count
   toward the thresholds, so the backend has no coverage floor
 
-**Test Suites** (44 suites, 505 tests). Run `npx jest --listTests` for the
+**Test Suites** (45 suites, 510 tests). Run `npx jest --listTests` for the
 current set; the security-relevant ones are worth knowing by name:
 
 *Backend (`api/**`)* — note these are **not** included in
@@ -693,6 +693,8 @@ current set; the security-relevant ones are worth knowing by name:
   reasoning model's `<think>` block (a bad match fails open, silently dropping
   the AI moderation pass)
 - `api/_lib/__tests__/jose-cjs.test.ts` - Guards the jose v6 ESM/CJS auth outage
+- `api/_lib/__tests__/logger.test.ts` - The caller's message is an argument,
+  never `console.error`'s format string; control characters cannot forge a line
 
 *Shared (`lib/**`)*:
 - `lib/ai/__tests__/prompt-injection.test.ts` - Allowlists hold against
