@@ -19,6 +19,8 @@ export interface AnswerKeyEntry {
   correctAnswer: string
   /** Skill this question tests, when known — diagnostics span several. */
   skill?: string
+  /** Why that answer is right. Released with the result, never before it. */
+  explanation?: string
 }
 
 export interface GradedQuestion {
@@ -27,6 +29,7 @@ export interface GradedQuestion {
   userAnswer: string
   correct: boolean
   skill?: string
+  explanation?: string
 }
 
 export interface GradeResult {
@@ -110,7 +113,8 @@ export function answerKeyFromAssessment(assessment: { questions?: unknown } | nu
     if (!questionId || !correctAnswer) continue
 
     const skill = typeof q.skill === 'string' ? q.skill : undefined
-    key.push({ questionId, correctAnswer, skill })
+    const explanation = typeof q.explanation === 'string' ? q.explanation : undefined
+    key.push({ questionId, correctAnswer, skill, explanation })
   }
   return key
 }
@@ -119,19 +123,24 @@ export function answerKeyFromAssessment(assessment: { questions?: unknown } | nu
  * Answer key for the question ids a submission actually names, taken from the
  * shared bank.
  *
- * This is the path in use today: `lingo.assessments` is empty, and the app
- * builds its assessments from `lib/data/assessment-questions.ts`. Only ids the
- * bank knows are graded, so an invented id cannot pad the total in either
- * direction.
+ * This is the path in use today: `lingo.assessments` is empty, and the app's
+ * quizzes are drawn from `api/_lib/question-bank.ts`. The ids passed in are
+ * the ones `/api/assessments/start` **issued** — never the ids a caller chose
+ * to answer, which would let it pick its own denominator.
  */
 export function answerKeyFromBank(
-  bank: { id: string; correctAnswer: string; skill?: string }[],
+  bank: { id: string; correctAnswer: string; skill?: string; explanation?: string }[],
   questionIds: string[]
 ): AnswerKeyEntry[] {
   const wanted = new Set(questionIds)
   return bank
     .filter((q) => wanted.has(q.id))
-    .map((q) => ({ questionId: q.id, correctAnswer: q.correctAnswer, skill: q.skill }))
+    .map((q) => ({
+      questionId: q.id,
+      correctAnswer: q.correctAnswer,
+      skill: q.skill,
+      explanation: q.explanation,
+    }))
 }
 
 /**
@@ -167,6 +176,7 @@ export function gradeAnswers(
       userAnswer: typeof userAnswer === 'string' ? userAnswer : '',
       correct: matches(userAnswer, entry.correctAnswer),
       skill: entry.skill,
+      explanation: entry.explanation,
     }
   })
 

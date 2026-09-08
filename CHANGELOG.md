@@ -9,6 +9,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+- **The server issues the assessment, not just the score** — grading moved
+  server-side in v0.2.0, but the answer key was still built from the question
+  ids the *caller* submitted (`answerKeyFromBank(bank, Object.keys(answers))`).
+  Submitting a single correct answer therefore scored 1/1 = 100% and wrote
+  `user_skills.current_score = 100`, which `api/_lib/tutor-prompt.ts` reads on
+  every AI turn: the caller could not choose the numerator, but choosing the
+  denominator did just as well. Found by running the real grading module
+  against the real question bank, which the mocked route tests could not show —
+  they supplied the key that the live code derives from the request.
+
+  `POST /api/assessments/start` now selects the questions and records their ids
+  in `lingo.assessment_sessions`; `POST /api/assessments/submit` requires that
+  `session_id` and grades against the issued set. An unanswered question is
+  wrong, an id that was never issued is not graded, and a session is single use
+  (claimed with a conditional update, so two concurrent submissions cannot both
+  grade it), expiring after two hours, and readable only by its owner — another
+  learner's id returns 404 rather than 403.
+- **The answer key no longer ships to the client** —
+  `lib/data/assessment-questions.ts` carried every `correctAnswer` into the app
+  bundle, so a learner could read the answers out of the JavaScript. It now
+  lives at `api/_lib/question-bank.ts`, and questions cross to the client
+  through `toPublicQuestion`, which drops the answer and the explanation. Both
+  come back in the submit response, after the attempt is closed.
+  `question-bank-isolation.test.ts` walks `app/`, `components/`, `lib/`,
+  `constants/` and `web/` and fails if anything imports it back — a re-added
+  import would break no type check and no other test.
+
+### Changed
+- **The assessment screen no longer grades locally.** It asks the server for a
+  quiz, submits answers, and shows the server's verdict. Two consequences worth
+  knowing: there is no per-question "Correct!" during the quiz (the screen does
+  not know — the full review with answers and explanations arrives with the
+  result), and assessments now need connectivity, so the screen offers a retry
+  instead of silently showing an empty quiz.
+- `user_assessments` rows carry the `session_id` they were graded under.
+- `scripts/create-indexes.ts` adds an `assessment_sessions` TTL index, so
+  lapsed quizzes are swept rather than accumulating.
+
+
 _Nothing yet._
 
 ---
