@@ -1,7 +1,7 @@
 # Test Coverage Analysis
 
 **Last measured**: September 2026 · **Framework**: Jest 29 + jest-expo
-**Suites**: 48 · **Tests**: 542 · all passing
+**Suites**: 48 · **Tests**: 550 · all passing
 
 Regenerate the numbers below with `npm run test:coverage`. They are a snapshot,
 not a contract — the contract is the threshold block in `package.json`.
@@ -105,7 +105,7 @@ server-side; then a live run against the real question bank showed that was
 only half of it — the caller still chose *which* questions counted, so one
 correct answer scored 100%. The server now issues the quiz
 (`api/_lib/assessment-session.ts`) and grades the set it issued, and the answer
-key no longer ships to the client at all. Sixty-three tests cover it, none of
+key no longer ships to the client at all. Seventy-one tests cover it, none of
 which move the numbers above, because they live under `api/**`. That is this
 document's first point, demonstrated twice.
 

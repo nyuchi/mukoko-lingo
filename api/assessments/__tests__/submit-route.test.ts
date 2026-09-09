@@ -51,13 +51,15 @@ jest.mock('../../_lib/mongo', () => ({
 }))
 jest.mock('../../_lib/question-bank', () => ({
   __esModule: true,
+  // Levels matter: they cap what a perfect run may write to user_skills.
   assessmentQuestions: [
-    { id: 'vocab-b-1', skill: 'vocabulary', correctAnswer: 'Hello' },
-    { id: 'vocab-b-2', skill: 'vocabulary', correctAnswer: 'Thank you' },
-    { id: 'vocab-b-3', skill: 'vocabulary', correctAnswer: 'Goodbye' },
-    { id: 'vocab-b-4', skill: 'vocabulary', correctAnswer: 'Please' },
-    { id: 'gram-b-1', skill: 'grammar', correctAnswer: 'Ndiri' },
-    { id: 'gram-b-2', skill: 'grammar', correctAnswer: 'Uri' },
+    { id: 'vocab-b-1', skill: 'vocabulary', correctAnswer: 'Hello', level: 'beginner' },
+    { id: 'vocab-b-2', skill: 'vocabulary', correctAnswer: 'Thank you', level: 'beginner' },
+    { id: 'vocab-b-3', skill: 'vocabulary', correctAnswer: 'Goodbye', level: 'beginner' },
+    { id: 'vocab-b-4', skill: 'vocabulary', correctAnswer: 'Please', level: 'beginner' },
+    { id: 'gram-b-1', skill: 'grammar', correctAnswer: 'Ndiri', level: 'beginner' },
+    { id: 'gram-b-2', skill: 'grammar', correctAnswer: 'Uri', level: 'beginner' },
+    { id: 'vocab-a-1', skill: 'vocabulary', correctAnswer: 'Chokwadi', level: 'advanced' },
   ],
 }))
 
@@ -140,7 +142,7 @@ describe('POST /api/assessments/submit', () => {
     expect(res.body.data).toMatchObject({ score: 25, correct: 1, total: 4, passed: false })
 
     const [, update] = mockUserSkillsUpdate.mock.calls[0]
-    expect(update.$set).toEqual({ current_score: 25 })
+    expect(update.$set).toEqual({ current_score: 25 })  // under the cap, untouched
   })
 
   it('ignores answers to questions it did not issue', async () => {
@@ -223,7 +225,35 @@ describe('POST /api/assessments/submit', () => {
     const [filter, update] = mockUserSkillsUpdate.mock.calls[0]
     // A name here would create a row the tutor prompt silently ignores.
     expect(filter).toEqual({ user_id: 'person-1', skill_id: 'skill-uuid-vocabulary' })
-    expect(update.$set).toEqual({ current_score: 100 })
+    // 100% of beginner questions, capped: the reported score is still 100, but
+    // what is persisted as proficiency is what the questions could show.
+    expect(res.body.data.score).toBe(100)
+    expect(update.$set).toEqual({ current_score: 64 })
+  })
+
+  it('caps the persisted score by the difficulty of the questions asked', async () => {
+    // Found by driving the real handlers against the real bank: a diagnostic
+    // is drawn entirely from beginner questions, and a perfect run was writing
+    // current_score = 100 — "fluent" — which tutor-prompt.ts reads every turn.
+    // Retakes are unlimited and keep the best score, so guessing until it
+    // landed cost nothing.
+    const beginnerOnly = await submit({ session_id: 'session-1', answers: ALL_CORRECT })
+    expect(beginnerOnly.body.data.score_ceiling).toBe(64)
+    expect(mockUserSkillsUpdate.mock.calls[0][1].$set).toEqual({ current_score: 64 })
+
+    jest.clearAllMocks()
+    mockRequireAuth.mockResolvedValue({ personId: 'person-1' })
+    mockUserAssessmentsInsert.mockResolvedValue({ insertedId: 'ua-2' })
+    mockAssessmentsFindOne.mockResolvedValue(null)
+    mockUserSkillsFindOne.mockResolvedValue(null)
+    mockSkillsFind.mockResolvedValue(SKILL_DOCS)
+    mockSessionFindOne.mockResolvedValue(issuedSession({ question_ids: ['vocab-a-1'] }))
+    mockSessionUpdate.mockResolvedValue({ value: issuedSession() })
+
+    // An advanced question can evidence anything.
+    const advanced = await submit({ session_id: 'session-1', answers: { 'vocab-a-1': 'Chokwadi' } })
+    expect(advanced.body.data.score_ceiling).toBe(100)
+    expect(mockUserSkillsUpdate.mock.calls[0][1].$set).toEqual({ current_score: 100 })
   })
 
   it('scores every skill a diagnostic covers, promoting none of them', async () => {
@@ -246,7 +276,10 @@ describe('POST /api/assessments/submit', () => {
     const scoresBySkill = Object.fromEntries(
       mockUserSkillsUpdate.mock.calls.map(([filter, update]: any[]) => [filter.skill_id, update.$set.current_score])
     )
-    expect(scoresBySkill).toEqual({ 'skill-uuid-vocabulary': 100, 'skill-uuid-grammar': 50 })
+    // Reported per-skill is 100/50; persisted is capped to what beginner
+    // questions can demonstrate. 50 is already under the cap and passes through.
+    expect(res.body.data.per_skill).toEqual({ vocabulary: 100, grammar: 50 })
+    expect(scoresBySkill).toEqual({ 'skill-uuid-vocabulary': 64, 'skill-uuid-grammar': 50 })
     expect(res.body.data.level_achieved).toBeNull()
   })
 

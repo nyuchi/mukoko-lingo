@@ -21,6 +21,8 @@ export interface AnswerKeyEntry {
   skill?: string
   /** Why that answer is right. Released with the result, never before it. */
   explanation?: string
+  /** Difficulty of the question — caps what answering it can demonstrate. */
+  level?: string
 }
 
 export interface GradedQuestion {
@@ -40,6 +42,46 @@ export interface GradeResult {
   perQuestion: GradedQuestion[]
   /** Percentage per skill, for a diagnostic that spans several. */
   perSkill: Record<string, number>
+  /** Highest score this question set can support, overall and per skill. */
+  ceiling: number
+  perSkillCeiling: Record<string, number>
+}
+
+/**
+ * The highest proficiency a set of questions at a given difficulty can
+ * demonstrate.
+ *
+ * A perfect score on beginner questions shows the learner is past beginner. It
+ * does not show they are fluent — and until this cap existed, it wrote exactly
+ * that: `getDiagnosticQuestions` only ever selects `level: 'beginner'`
+ * questions, so a diagnostic could write `current_score: 100` (fluent) for a
+ * skill it sampled with one four-option question. `tutor-prompt.ts` reads that
+ * number on every AI turn, so the tutor would then address a beginner as a
+ * peer. Retakes keep the best score and are unlimited, so guessing until it
+ * landed cost a learner nothing.
+ *
+ * The ceiling is the top of the band **above** the hardest question asked
+ * (bands from `scoreToLevel` in `lib/ai/prompt-builder.ts`): mastery of level
+ * L content evidences the level above it, and nothing further.
+ */
+const LEVEL_CEILING: Record<string, number> = {
+  beginner: 64, // top of elementary
+  elementary: 79, // top of intermediate
+  intermediate: 89, // top of advanced
+  advanced: 100,
+  fluent: 100,
+}
+
+/** Unknown or missing difficulty is treated as the easiest — the safe reading. */
+export const DEFAULT_LEVEL_CEILING = LEVEL_CEILING.beginner
+
+export function ceilingForLevels(levels: (string | undefined)[]): number {
+  let ceiling = DEFAULT_LEVEL_CEILING
+  for (const level of levels) {
+    const candidate = level ? LEVEL_CEILING[level] : undefined
+    if (typeof candidate === 'number' && candidate > ceiling) ceiling = candidate
+  }
+  return ceiling
 }
 
 /** Used when the assessment document does not set its own `passing_score`. */
@@ -114,7 +156,8 @@ export function answerKeyFromAssessment(assessment: { questions?: unknown } | nu
 
     const skill = typeof q.skill === 'string' ? q.skill : undefined
     const explanation = typeof q.explanation === 'string' ? q.explanation : undefined
-    key.push({ questionId, correctAnswer, skill, explanation })
+    const level = typeof q.level === 'string' ? q.level : typeof q.difficulty === 'string' ? q.difficulty : undefined
+    key.push({ questionId, correctAnswer, skill, explanation, level })
   }
   return key
 }
@@ -129,7 +172,7 @@ export function answerKeyFromAssessment(assessment: { questions?: unknown } | nu
  * to answer, which would let it pick its own denominator.
  */
 export function answerKeyFromBank(
-  bank: { id: string; correctAnswer: string; skill?: string; explanation?: string }[],
+  bank: { id: string; correctAnswer: string; skill?: string; explanation?: string; level?: string }[],
   questionIds: string[]
 ): AnswerKeyEntry[] {
   const wanted = new Set(questionIds)
@@ -140,6 +183,7 @@ export function answerKeyFromBank(
       correctAnswer: q.correctAnswer,
       skill: q.skill,
       explanation: q.explanation,
+      level: q.level,
     }))
 }
 
@@ -196,7 +240,25 @@ export function gradeAnswers(
     perSkill[skill] = Math.round((tally.correct / tally.total) * 100)
   }
 
-  return { score, total, percentage, passed: total > 0 && percentage >= passingScore, perQuestion, perSkill }
+  // What each set of questions can support, by its hardest question.
+  const levelByQuestion = new Map(answerKey.map((entry) => [entry.questionId, entry.level]))
+  const perSkillCeiling: Record<string, number> = {}
+  for (const skill of Object.keys(bySkill)) {
+    perSkillCeiling[skill] = ceilingForLevels(
+      perQuestion.filter((q) => q.skill === skill).map((q) => levelByQuestion.get(q.questionId))
+    )
+  }
+
+  return {
+    score,
+    total,
+    percentage,
+    passed: total > 0 && percentage >= passingScore,
+    perQuestion,
+    perSkill,
+    ceiling: ceilingForLevels(answerKey.map((entry) => entry.level)),
+    perSkillCeiling,
+  }
 }
 
 /** The assessment's own threshold, when it sets a sane one. */
@@ -214,7 +276,13 @@ export function resolvePassingScore(assessment: { passing_score?: unknown } | nu
  *
  * - **The score never goes down.** A learner retaking an assessment and doing
  *   worse keeps their best result; the tutor should not un-learn what they
- *   demonstrated.
+ *   demonstrated. Because retakes are unlimited, this makes the ceiling below
+ *   load-bearing: without it a learner could guess repeatedly until a lucky
+ *   run wrote a score they never earned, and keep it.
+ * - **A score cannot exceed what the questions could demonstrate.** The new
+ *   percentage is capped by `ceiling` before it is compared with the existing
+ *   score — see `ceilingForLevels`. An existing higher score is untouched: the
+ *   cap limits what this attempt may claim, it does not revoke past results.
  * - **A level is only promoted by a real assessment document that names a
  *   `target_level`.** The bundled question bank has no notion of a target
  *   level, so a bank-graded pass records a score and stops there. Inventing a
@@ -225,10 +293,14 @@ export function resolveSkillUpdate(params: {
   percentage: number
   passed: boolean
   assessment: { target_level?: unknown } | null
+  /** Highest score these questions can support; defaults to the safest. */
+  ceiling?: number
 }): { current_score: number; current_level?: string; level_achieved_at?: Date } | null {
   const { existing, percentage, passed, assessment } = params
 
-  const bestScore = Math.max(existing?.current_score ?? 0, percentage)
+  const ceiling = typeof params.ceiling === 'number' ? params.ceiling : DEFAULT_LEVEL_CEILING
+  const claimed = Math.min(percentage, ceiling)
+  const bestScore = Math.max(existing?.current_score ?? 0, claimed)
   const targetLevel = typeof assessment?.target_level === 'string' ? assessment.target_level : null
   const promote = passed && Boolean(targetLevel)
 

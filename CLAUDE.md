@@ -409,6 +409,17 @@ Details (`api/_lib/assessment-grading.ts`, `api/_lib/assessment-session.ts`):
 - The caller may ask for a question `count`; it is clamped to 3–25 rather than
   refused. The floor matters: a one-question quiz makes any correct answer a
   perfect score.
+- **A persisted score cannot exceed what the questions could demonstrate.**
+  `ceilingForLevels` caps it at the top of the band *above* the hardest
+  question asked: beginner → 64, elementary → 79, intermediate → 89,
+  advanced/fluent → 100. `getDiagnosticQuestions` only ever selects
+  beginner-level questions, so a perfect diagnostic evidences elementary, and a
+  skill sampled with one four-option question can no longer write 100
+  ("fluent") into the row the tutor reads every turn. Retakes are unlimited and
+  keep the best score, which is what made that worth guessing at. The cap
+  limits what an attempt may claim; a higher score already earned on harder
+  questions is never revoked. The response carries `score_ceiling` and
+  `per_skill_ceiling` alongside the raw percentages.
 - **A level is only promoted by a real assessment document naming a
   `target_level`.** The bundled bank has no target level, so a bank-graded pass
   records a score and stops there.
@@ -717,7 +728,7 @@ built server-side (see AI Integration above).
   `components/**` — `api/**` and `scripts/**` tests run but do **not** count
   toward the thresholds, so the backend has no coverage floor
 
-**Test Suites** (48 suites, 542 tests). Run `npx jest --listTests` for the
+**Test Suites** (48 suites, 550 tests). Run `npx jest --listTests` for the
 current set; the security-relevant ones are worth knowing by name:
 
 *Backend (`api/**`)* — note these are **not** included in

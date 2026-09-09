@@ -55,6 +55,9 @@ export interface AssessmentSubmitResponse {
   passed: boolean
   results: GradedQuestionResult[]
   per_skill: Record<string, number>
+  /** Highest score the questions asked could support (see `ceilingForLevels`). */
+  score_ceiling: number
+  per_skill_ceiling: Record<string, number>
   skills_updated: string[]
   level_achieved: string | null
   time_taken: number | null

@@ -16,6 +16,9 @@
  *   not 100%, because `total` no longer depends on what was submitted.
  * - A session is single use and expires, so a quiz cannot be re-graded until
  *   the answers come out right.
+ * - A persisted score is capped by the difficulty of the questions asked.
+ *   Diagnostics are drawn entirely from beginner-level questions, so a perfect
+ *   diagnostic evidences elementary, not fluency — see `ceilingForLevels`.
  */
 
 import type { VercelRequest, VercelResponse } from '@vercel/node'
@@ -131,8 +134,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             name,
             skillId: resolved.get(name) ?? null,
             percentage: result.perSkill[name],
+            // Per skill, not overall: a diagnostic can ask one skill a harder
+            // question than another, and each score is capped by its own.
+            ceiling: result.perSkillCeiling[name],
           }))
-        : [{ name: session.skill_id, skillId: primarySkillId, percentage: result.percentage }]
+        : [{ name: session.skill_id, skillId: primarySkillId, percentage: result.percentage, ceiling: result.ceiling }]
 
     const userAssessmentsCol = await userAssessments()
     const insertResult = await userAssessmentsCol.insertOne({
@@ -168,6 +174,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         percentage: entry.percentage,
         passed: entry.percentage >= resolvePassingScore(assessment),
         assessment: promotable,
+        ceiling: entry.ceiling,
       })
       if (!update) continue
 
@@ -195,6 +202,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         // lets the client show a review without ever holding the key itself.
         results: result.perQuestion,
         per_skill: result.perSkill,
+        // What the questions asked could demonstrate. A perfect run on
+        // beginner questions is a perfect run on beginner questions.
+        score_ceiling: result.ceiling,
+        per_skill_ceiling: result.perSkillCeiling,
         skills_updated: updatedSkills,
         level_achieved: levelAchieved,
         time_taken: timeTaken,

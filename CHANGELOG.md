@@ -27,6 +27,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (claimed with a conditional update, so two concurrent submissions cannot both
   grade it), expiring after two hours, and readable only by its owner — another
   learner's id returns 404 rather than 403.
+- **A score cannot exceed what the questions asked could demonstrate**
+  (`ceilingForLevels`) — found by driving the real start/submit handlers
+  against the real question bank rather than mocks. `getDiagnosticQuestions`
+  selects only `level: 'beginner'` questions, so a diagnostic that sampled a
+  skill with **one** four-option question was writing
+  `user_skills.current_score = 100` — "fluent" — for that skill, and
+  `tutor-prompt.ts` reads that number on every AI turn. Retakes are unlimited
+  and keep the best score, so guessing until it landed cost nothing. A
+  persisted score is now capped at the top of the band above the hardest
+  question asked (beginner → 64, elementary → 79, intermediate → 89,
+  advanced → 100), per skill. The reported percentage is unchanged; only what
+  is recorded as proficiency is limited, and a higher score already earned on
+  harder questions is never revoked.
 - **The answer key no longer ships to the client** —
   `lib/data/assessment-questions.ts` carried every `correctAnswer` into the app
   bundle, so a learner could read the answers out of the JavaScript. It now
